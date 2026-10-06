@@ -154,7 +154,13 @@ pt:{
  resH:"Resultados (neste dispositivo)", resP:"Histórico guardado localmente — exporte para CSV como num Google Form.",
  thDate:"Data", thName:"Nome", thScore:"Nota", thT:"Tempo", thAtt:"Tentativa",
  expAll:"Exportar tudo (CSV)", clear:"Apagar histórico", empty:"Sem tentativas ainda.",
- timeout:"Tempo esgotado — questionário terminado automaticamente."
+ timeout:"Tempo esgotado — questionário terminado automaticamente.",
+ code:"Código da turma", send:"Enviar resultado", sending:"A enviar…",
+ sent:"Guardado ✓", needCode:"Introduza o código da turma dado pelo docente.",
+ badCode:"Código incorreto — confirme com o docente.",
+ netFail:"Falha de rede — tente de novo.",
+ submitLink:"Ligação de envio", submitSet:"Guardar", submitSaved:"Ligação guardada.",
+ submitP:"Cole aqui a ligação de envio dada pelo docente (uma vez por dispositivo)."
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -178,7 +184,13 @@ en:{
  resH:"Results (this device)", resP:"History stored locally — export to CSV as with a Google Form.",
  thDate:"Date", thName:"Name", thScore:"Score", thT:"Time", thAtt:"Attempt",
  expAll:"Export all (CSV)", clear:"Clear history", empty:"No attempts yet.",
- timeout:"Time is up — quiz finished automatically."
+ timeout:"Time is up — quiz finished automatically.",
+ code:"Class code", send:"Send result", sending:"Sending…",
+ sent:"Saved ✓", needCode:"Enter the class code given by your teacher.",
+ badCode:"Wrong code — check with your teacher.",
+ netFail:"Network error — try again.",
+ submitLink:"Submit link", submitSet:"Save", submitSaved:"Link saved.",
+ submitP:"Paste here the submit link given by your teacher (once per device)."
 }};
 const LESSON = {
 pt:{aula1:"Aula 1 — Evolução do Clima",aula2:"Aula 2 — Análise Climática",aula3:"Aula 3 — Arquitetura Bioclimática"},
@@ -187,6 +199,14 @@ let LANG = "pt";
 const $ = s => document.querySelector(s);
 const t = k => STR[LANG][k];
 const LETTERS = ["A","B","C","D"];
+const BAKED_SUBMIT = ""; // replaced at build; empty = use ?submit= link or Resultados-tab link
+function submitURL(){
+  try{
+    const q = new URLSearchParams(location.search).get("submit");
+    if(q){ localStorage.setItem("qa_submit", q); return q; }
+    return localStorage.getItem("qa_submit") || BAKED_SUBMIT || "";
+  }catch(e){ return BAKED_SUBMIT || ""; }
+}
 
 function rnd(n){ // crypto-backed int in [0,n)
   const b = new Uint32Array(1);
@@ -350,6 +370,13 @@ function renderResult(el){
       <button class="btn" id="r-copy">${esc(t("copy"))}</button>
       <span class="hint" id="r-msg"></span>
     </div>
+    <div class="panel" id="r-sendpanel"><div class="panel-body">
+      <div class="controls" style="margin:0">
+        <span class="ctl"><label>${esc(t("code"))}</label><input type="text" id="r-code" style="width:130px" autocomplete="off" spellcheck="false"></span>
+        <button class="btn solid" id="r-send">${esc(t("send"))}</button>
+        <span class="hint" id="r-sendmsg"></span>
+      </div>
+    </div></div>
     <div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("review"))}</h3></div></div>
       <div class="panel-body">`+
       Q.items.map((it,i)=>{
@@ -364,6 +391,28 @@ function renderResult(el){
     const s=`${Q.id} · ${LESSON[LANG][Q.lesson]} · ${Q.score}/${Q.n} (${pct.toFixed(0)}%) · ${fmtTime(Q.secs)}${Q.name?" · "+Q.name:""}${Q.klass?" · "+Q.klass:""}`;
     navigator.clipboard.writeText(s).then(()=>{$("#r-msg").textContent=t("copied");});
   };
+  if(!submitURL()){ $("#r-sendpanel").style.display="none"; }
+  else{
+    try{ if(localStorage.getItem("qa_sent_"+Q.id)) sentState(); }catch(e){}
+    $("#r-send").onclick=sendResult;
+  }
+}
+function sentState(){ $("#r-send").disabled=true; $("#r-send").textContent=t("sent"); $("#r-sendmsg").textContent=Q.id; }
+async function sendResult(){
+  const btn=$("#r-send"), msg=$("#r-sendmsg"), code=$("#r-code").value.trim();
+  if(!code){ msg.textContent=t("needCode"); return; }
+  btn.disabled=true; btn.textContent=t("sending"); msg.textContent="";
+  const payload={code, id:Q.id, name:Q.name, klass:Q.klass, lesson:LESSON[LANG][Q.lesson],
+    n:Q.n, score:Q.score, pct:+(Q.score/Q.n*100).toFixed(1), secs:Q.secs,
+    date:new Date().toISOString(),
+    detail:Q.items.map((it,i)=>`${it.src+1}:${Q.ans[i]===undefined?"-":LETTERS[Q.ans[i]]}${Q.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
+  try{
+    const r=await fetch(submitURL(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    if(r.status===403){ msg.textContent=t("badCode"); btn.disabled=false; btn.textContent=t("send"); return; }
+    if(!r.ok) throw new Error("http "+r.status);
+    try{localStorage.setItem("qa_sent_"+Q.id,"1");}catch(e){}
+    sentState();
+  }catch(e){ msg.textContent=t("netFail"); btn.disabled=false; btn.textContent=t("send"); }
 }
 
 /* ---------- projector ---------- */
@@ -460,11 +509,18 @@ function renderRes(){
       <button class="btn solid" id="e-all"${all.length?"":" disabled"}>${esc(t("expAll"))}</button>
       <button class="btn" id="e-clear"${all.length?"":" disabled"}>${esc(t("clear"))}</button>
       <span class="meta">${all.length}</span>
+    </div>
+    <div class="controls">
+      <span class="ctl"><label>${esc(t("submitLink"))}</label><input type="text" id="e-url" style="width:230px" autocomplete="off" spellcheck="false"></span>
+      <button class="btn" id="e-save">${esc(t("submitSet"))}</button>
+      <span class="hint" id="e-msg">${esc(t("submitP"))}</span>
     </div>`+
     (all.length?`<div class="panel"><div class="tbl-scroll"><table class="data">
       <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("thName"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
       <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(r.date)}</td><td>${esc(r.name||"—")}${r.klass?" · "+esc(r.klass):""}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
     </table></div></div>`:`<p class="hint">${esc(t("empty"))}</p>`);
+  $("#e-url").value=submitURL();
+  $("#e-save").onclick=()=>{ try{localStorage.setItem("qa_submit",$("#e-url").value.trim());}catch(e){} $("#e-msg").textContent=t("submitSaved"); };
   if(all.length){
     $("#e-all").onclick=()=>downloadCSV(loadRes(),"quiz-results.csv");
     $("#e-clear").onclick=()=>{localStorage.removeItem(LSKEY); renderRes();};

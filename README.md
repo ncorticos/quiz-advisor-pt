@@ -19,3 +19,13 @@ Same visual language as [Architecture Advisor](https://ncorticos.github.io/archi
 
 Question bank v1.0.0: 348 questions extracted from lessons L.01–L.03 —
 Aula 1–3 (46/54/74, PT) + Lecture 1–3 (46/54/74, EN).
+
+## Results storage (teacher)
+
+Attempts are sent to the private
+[quiz-results](https://github.com/ncorticos/quiz-results) repo (one JSON file
+per attempt — reading it requires your GitHub login) through `worker.js`, a
+free Cloudflare Worker that checks the class code announced in the room, so
+the GitHub token never appears in the student-facing page. Teacher setup is in
+the header comment of `worker.js`; students open the class link with
+`?submit=<worker-url>` (or paste it once in 04 Resultados > Ligação de envio).
