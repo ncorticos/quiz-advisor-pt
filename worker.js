@@ -1,4 +1,4 @@
-// Quiz Advisor results gatekeeper — Cloudflare Worker (free tier is enough).
+// Quizzes Machine results gatekeeper — Cloudflare Worker (free tier is enough).
 //
 // Why this exists: the quiz page is static (GitHub Pages) and cannot keep a
 // secret, so it cannot write to GitHub directly. This worker holds the GitHub
@@ -80,7 +80,7 @@ export default {
       Authorization: `Bearer ${env.GITHUB_TOKEN}`,
       Accept: "application/vnd.github+json",
       "Content-Type": "application/json",
-      "User-Agent": "quiz-advisor-worker",
+      "User-Agent": "quizzes-machine-worker",
     };
     // Fetch existing sha so re-sends of the same attempt update instead of failing.
     let sha;

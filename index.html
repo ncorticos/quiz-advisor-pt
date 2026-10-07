@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quiz Advisor 1.2.0 — 2026-10-06
+  Quizzes Machine 1.3.0 — 2026-10-07
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.01–L.03.
 
@@ -12,7 +12,7 @@
   Settings > Pages > Deploy from branch. Não precisa de build nem servidor.
   Também funciona offline aberto como ficheiro (file://).
 -->
-<title>Quiz Advisor — Conforto Ambiental & Eficiência Energética</title>
+<title>Quizzes Machine — Conforto Ambiental & Eficiência Energética</title>
 <style>
 :root{
   --bg:#ffffff; --panel:#ffffff; --ink:#14171a; --ink2:#3d444b;
@@ -112,7 +112,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
 <body>
 <header>
   <div class="hbar">
-    <div class="brand"><b>Quiz Advisor</b><span data-t="brandsub">Conforto Ambiental &amp; Eficiência Energética</span></div>
+    <div class="brand"><b>Quizzes Machine</b><span data-t="brandsub">Conforto Ambiental &amp; Eficiência Energética</span></div>
     <div class="langsel" role="group" aria-label="Language / Idioma">
       <button type="button" data-lang="pt" aria-pressed="true" title="Português">PT</button>
       <button type="button" data-lang="en" aria-pressed="false" title="English">EN</button>
@@ -160,7 +160,8 @@ pt:{
  badCode:"Código incorreto — confirme com o docente.",
  netFail:"Falha de rede — tente de novo.",
  submitLink:"Ligação de envio", submitSet:"Guardar", submitSaved:"Ligação guardada.",
- submitP:"Cole aqui a ligação de envio dada pelo docente (uma vez por dispositivo)."
+ submitP:"Cole aqui a ligação de envio dada pelo docente (uma vez por dispositivo).",
+ grpArch:"Arquitetos", grpEng:"Engenheiros"
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -190,7 +191,8 @@ en:{
  badCode:"Wrong code — check with your teacher.",
  netFail:"Network error — try again.",
  submitLink:"Submit link", submitSet:"Save", submitSaved:"Link saved.",
- submitP:"Paste here the submit link given by your teacher (once per device)."
+ submitP:"Paste here the submit link given by your teacher (once per device).",
+ grpArch:"Architects", grpEng:"Engineers"
 }};
 const LESSON = {
 pt:{aula0:"Aula 0 — Conhecimento e Investigação Científica",aula1:"Aula 1 — Evolução do Clima",aula2:"Aula 2 — Análise Climática",aula3:"Aula 3 — Arquitetura Bioclimática"},
@@ -220,6 +222,7 @@ function shuffle(a){
 function sampleIdx(n,k){ return shuffle([...Array(n).keys()]).slice(0,k); }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function fmtTime(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); }
+function grpLabel(v){ return v==="architects"?t("grpArch"):v==="engineers"?t("grpEng"):v||""; }
 
 /* ---------- tabs ---------- */
 let TAB = "quiz";
@@ -232,7 +235,7 @@ function renderTabs(){
 /* ---------- quiz state ---------- */
 let Q = null; // {lesson,n,items:[{q,opts,correct}],ans:{},i,startT,left,timerId,oneBy,name,klass,id,bankSize}
 function newAttemptId(){
-  return "QA-" + Date.now().toString(36).toUpperCase().slice(-4) +
+  return "QM-" + Date.now().toString(36).toUpperCase().slice(-4) +
     Array.from(crypto.getRandomValues(new Uint8Array(3))).map(b=>b.toString(36).toUpperCase()).join("").replace(/[^A-Z0-9]/g,"X").slice(0,4);
 }
 function currentBank(lesson){ return BANKS[LANG][lesson]; }
@@ -262,7 +265,7 @@ function renderQuiz(){
         <span class="ctl"><label>${esc(t("nq"))}</label>
           <input type="number" id="c-n" min="1" max="${bankSize}" value="${Q && Q.done ? Q.n : Math.min(10,bankSize)}"></span>
         <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
-        <span class="ctl"><label>${esc(t("klass"))}</label><input type="text" id="c-klass" placeholder="—"></span>
+        <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects">${esc(t("grpArch"))}</option><option value="engineers">${esc(t("grpEng"))}</option></select></span>
         <label class="chk"><input type="checkbox" id="c-sq" checked> ${esc(t("shufQ"))}</label>
         <label class="chk"><input type="checkbox" id="c-so" checked> ${esc(t("shufO"))}</label>
         <label class="chk"><input type="checkbox" id="c-ob" checked> ${esc(t("oneBy"))}</label>
@@ -361,7 +364,7 @@ function renderResult(el){
       <div class="stat"><div class="k">${esc(t("score"))}</div><div class="v">${Q.score}<small>/${Q.n} · ${pct.toFixed(0)}%</small></div>
         <div class="s"><span class="pill ${pass?"ok":"bad"}">${pass?esc(t("pass")):esc(t("fail"))}</span></div></div>
       <div class="stat"><div class="k">${esc(t("correct"))}</div><div class="v">${Q.score}</div><div class="s">${esc(t("of"))} ${Q.n} ${esc(t("total"))}</div></div>
-      <div class="stat"><div class="k">${esc(t("time"))}</div><div class="v">${fmtTime(Q.secs)}</div><div class="s">${esc(Q.name||"—")}${Q.klass?" · "+esc(Q.klass):""}</div></div>
+      <div class="stat"><div class="k">${esc(t("time"))}</div><div class="v">${fmtTime(Q.secs)}</div><div class="s">${esc(Q.name||"—")}${Q.klass?" · "+esc(grpLabel(Q.klass)):""}</div></div>
       <div class="stat"><div class="k">${esc(t("attempt"))}</div><div class="v" style="font-size:16px">${esc(Q.id)}</div><div class="s">${esc(LESSON[LANG][Q.lesson])}</div></div>
     </div>
     <div class="qnav" style="margin:14px 0">
@@ -517,7 +520,7 @@ function renderRes(){
     </div>`+
     (all.length?`<div class="panel"><div class="tbl-scroll"><table class="data">
       <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("thName"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
-      <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(r.date)}</td><td>${esc(r.name||"—")}${r.klass?" · "+esc(r.klass):""}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
+      <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(r.date)}</td><td>${esc(r.name||"—")}${r.klass?" · "+esc(grpLabel(r.klass)):""}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
     </table></div></div>`:`<p class="hint">${esc(t("empty"))}</p>`);
   $("#e-url").value=submitURL();
   $("#e-save").onclick=()=>{ try{localStorage.setItem("qa_submit",$("#e-url").value.trim());}catch(e){} $("#e-msg").textContent=t("submitSaved"); };

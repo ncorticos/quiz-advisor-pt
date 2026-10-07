@@ -1,4 +1,4 @@
-# Quiz Advisor
+# Quizzes Machine
 
 Randomised anti-copy classroom quizzes for architecture students —
 **Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency**
