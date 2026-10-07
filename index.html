@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.3.0 — 2026-10-07
+  Quizzes Machine 1.4.0 — 2026-10-07
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.01–L.03.
 
@@ -138,7 +138,7 @@ pt:{
  quizH:"Questionário aleatório anti-cópia",
  quizP:"Cada aluno recebe uma seleção diferente de perguntas e opções baralhadas. Defina a aula e o número de perguntas, iguais para a turma.",
  bank:"Banco de perguntas", nq:"N.º perguntas", name:"Nome", klass:"Turma / Sessão",
- shufQ:"Baralhar perguntas", shufO:"Baralhar opções", oneBy:"Uma de cada vez", mins:"Minutos (0 = sem limite)",
+ shufQ:"Baralhar perguntas", shufO:"Baralhar opções", oneBy:"Uma de cada vez", mins:"Minutos",
  start:"Começar questionário", qOf:"Pergunta", of:"de", finish:"Terminar", prev:"← Anterior", next:"Seguinte →",
  pickAll:"Responda a todas as perguntas antes de terminar.",
  score:"Pontuação", correct:"Certas", total:"perguntas", time:"Tempo", attempt:"Tentativa",
@@ -169,7 +169,7 @@ en:{
  quizH:"Randomised anti-copy quiz",
  quizP:"Each student gets a different selection of questions with shuffled options. Set the lesson and number of questions, same for the class.",
  bank:"Question bank", nq:"Questions", name:"Name", klass:"Group / Session",
- shufQ:"Shuffle questions", shufO:"Shuffle options", oneBy:"One at a time", mins:"Minutes (0 = no limit)",
+ shufQ:"Shuffle questions", shufO:"Shuffle options", oneBy:"One at a time", mins:"Minutes",
  start:"Start quiz", qOf:"Question", of:"of", finish:"Finish", prev:"← Previous", next:"Next →",
  pickAll:"Please answer all questions before finishing.",
  score:"Score", correct:"Correct", total:"questions", time:"Time", attempt:"Attempt",
@@ -263,19 +263,21 @@ function renderQuiz(){
         <span class="ctl"><label>${esc(t("bank"))}</label>
           <select id="c-lesson">${lessonOptions(Q && Q.done ? Q.lesson : "aula1")}</select></span>
         <span class="ctl"><label>${esc(t("nq"))}</label>
-          <input type="number" id="c-n" min="1" max="${bankSize}" value="${Q && Q.done ? Q.n : Math.min(10,bankSize)}"></span>
+          <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===(Q&&Q.done?Q.n:20)?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
         <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
         <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects">${esc(t("grpArch"))}</option><option value="engineers">${esc(t("grpEng"))}</option></select></span>
         <label class="chk"><input type="checkbox" id="c-sq" checked> ${esc(t("shufQ"))}</label>
         <label class="chk"><input type="checkbox" id="c-so" checked> ${esc(t("shufO"))}</label>
         <label class="chk"><input type="checkbox" id="c-ob" checked> ${esc(t("oneBy"))}</label>
-        <span class="ctl"><label>${esc(t("mins"))}</label><input type="number" id="c-min" min="0" max="180" value="0" style="width:60px"></span>
+        <span class="ctl"><label>${esc(t("mins"))}</label><select id="c-min">${[15,10,5].map(v=>`<option value="${v}">${v}</option>`).join("")}</select></span>
         <button class="btn solid" id="c-start">${esc(t("start"))}</button>
       </div>
       <div id="q-result"></div>`;
     $("#c-lesson").onchange = e => {
       const n = currentBank(e.target.value).length;
-      const ni = $("#c-n"); ni.max = n; ni.value = Math.min(parseInt(ni.value||"10",10), n);
+      const sel = $("#c-n");
+      [...sel.options].forEach(o=>{ o.disabled = parseInt(o.value,10) > n; });
+      if(parseInt(sel.value,10) > n){ sel.value = [...sel.options].filter(o=>!o.disabled).pop().value; }
     };
     $("#c-start").onclick = startQuiz;
     if(Q && Q.done) renderResult($("#q-result"));
