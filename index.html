@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.4.0 — 2026-10-07
+  Quizzes Machine 1.5.0 — 2026-10-07
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.01–L.03.
 
@@ -51,7 +51,7 @@ section.page.on{display:block}
 .controls{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:9px;background:var(--wash);margin-bottom:16px}
 .ctl{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink2)}
 .ctl>label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
-select,input[type=number],input[type=text]{font:inherit;font-size:12px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:5px;padding:4px 7px;max-width:230px}
+select,input[type=number],input[type=text],input[type=password]{font:inherit;font-size:12px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:5px;padding:4px 7px;max-width:230px}
 select:focus,input:focus{outline:2px solid #cfd8ea;outline-offset:0;border-color:var(--c1)}
 .chk{display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:var(--ink2)}
 .chk input{accent-color:var(--ink);margin:0}
@@ -161,7 +161,10 @@ pt:{
  netFail:"Falha de rede — tente de novo.",
  submitLink:"Ligação de envio", submitSet:"Guardar", submitSaved:"Ligação guardada.",
  submitP:"Cole aqui a ligação de envio dada pelo docente (uma vez por dispositivo).",
- grpArch:"Arquitetos", grpEng:"Engenheiros"
+ grpArch:"Arquitetos", grpEng:"Engenheiros",
+ lockB:"Definições", codeL:"Código", unlockedMsg:"Desbloqueado — volte a bloquear antes da aula.",
+ wrongCode:"Código incorreto.", triesLeft:"tentativas restantes.",
+ lockedMsg:"Bloqueado após códigos errados — tente dentro de", minShort:"min."
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -192,7 +195,10 @@ en:{
  netFail:"Network error — try again.",
  submitLink:"Submit link", submitSet:"Save", submitSaved:"Link saved.",
  submitP:"Paste here the submit link given by your teacher (once per device).",
- grpArch:"Architects", grpEng:"Engineers"
+ grpArch:"Architects", grpEng:"Engineers",
+ lockB:"Settings", codeL:"Code", unlockedMsg:"Unlocked — re-lock before class.",
+ wrongCode:"Wrong code.", triesLeft:"attempts left.",
+ lockedMsg:"Locked after wrong codes — retry in", minShort:"min."
 }};
 const LESSON = {
 pt:{aula0:"Aula 0 — Conhecimento e Investigação Científica",aula1:"Aula 1 — Evolução do Clima",aula2:"Aula 2 — Análise Climática",aula3:"Aula 3 — Arquitetura Bioclimática"},
@@ -208,6 +214,61 @@ function submitURL(){
     if(q){ localStorage.setItem("qa_submit", q); return q; }
     return localStorage.getItem("qa_submit") || BAKED_SUBMIT || "";
   }catch(e){ return BAKED_SUBMIT || ""; }
+}
+/* ---------- settings lock (code 3016, escalating lockout) ---------- */
+const SETTINGS_CODE = "3016";
+const LOCKKEY = "quizLockV1";
+let UNLOCKED = false;
+const DEF = (()=>{
+  let g={};
+  try{ g = Object.fromEntries(new URLSearchParams(location.search)); }catch(e){}
+  const okL=["aula0","aula1","aula2","aula3"], okN=[20,30,40,50], okM=[15,10,5];
+  const n=parseInt(g.n||"20",10), m=parseInt(g.mins||"15",10);
+  return {
+    lesson: okL.includes(g.lesson)?g.lesson:"aula1",
+    n: okN.includes(n)?n:20,
+    mins: okM.includes(m)?m:15,
+    group: ["architects","engineers"].includes(g.group)?g.group:""
+  };
+})();
+function lockInfo(){ try{return JSON.parse(localStorage.getItem(LOCKKEY)||'{"f":0,"u":0}');}catch(e){return{f:0,u:0};} }
+function lockSave(o){ try{localStorage.setItem(LOCKKEY,JSON.stringify(o));}catch(e){} }
+function lockRemaining(){ return Math.max(0, lockInfo().u - Date.now()); }
+function tryCode(){
+  const inp=$("#c-code"); if(!inp||inp.disabled) return;
+  const now=Date.now(), info=lockInfo();
+  if(now<info.u){ refreshLockMsg(); return; }
+  if(inp.value===SETTINGS_CODE){ lockSave({f:0,u:0}); UNLOCKED=true; renderQuiz(); return; }
+  info.f=(info.f||0)+1;
+  if(info.f===3) info.u=now+5*60*1000;
+  else if(info.f===4) info.u=now+10*60*1000;
+  else if(info.f>=5) info.u=now+60*60*1000;
+  lockSave(info); inp.value=""; refreshLockMsg();
+}
+function refreshLockMsg(){
+  const m=$("#c-lockmsg"); if(!m) return;
+  if(window._lockT){ clearInterval(window._lockT); window._lockT=null; }
+  const info=lockInfo(), rem=info.u-Date.now();
+  const inp=$("#c-code");
+  if(rem>0){
+    if(inp) inp.disabled=true;
+    const tick=()=>{
+      const r=lockInfo().u-Date.now(), mm=$("#c-lockmsg"), ii=$("#c-code");
+      if(r<=0){
+        if(window._lockT){clearInterval(window._lockT);window._lockT=null;}
+        if(ii) ii.disabled=false;
+        if(mm) mm.textContent=`${t("wrongCode")} (0 ${t("triesLeft")})`;
+      }else if(mm){
+        mm.textContent=`${t("lockedMsg")} ${Math.floor(r/60000)}:${String(Math.floor(r%60000/1000)).padStart(2,"0")} ${t("minShort")}`;
+      }
+    };
+    tick();
+    window._lockT=setInterval(tick,1000);
+  }else{
+    if(inp) inp.disabled=false;
+    const left=Math.max(0,3-(info.f||0));
+    m.textContent=(info.f||0)>0?`${t("wrongCode")} (${left} ${t("triesLeft")})`:"";
+  }
 }
 
 function rnd(n){ // crypto-backed int in [0,n)
@@ -255,30 +316,50 @@ function lessonOptions(sel){
 }
 function renderQuiz(){
   const el = $("#pg-quiz");
+  if(window._lockT){ clearInterval(window._lockT); window._lockT=null; }
   if(!Q || Q.done){ // setup view (+ result below if done)
-    const bankSize = currentBank(Q && Q.done ? Q.lesson : "aula1").length;
+    const defLesson = (Q && Q.done) ? Q.lesson : DEF.lesson;
+    const bankSize = currentBank(defLesson).length;
+    const validN = [20,30,40,50].filter(v=>v<=bankSize);
+    const wantN = (Q && Q.done) ? Q.n : DEF.n;
+    const selN = validN.includes(wantN) ? wantN : validN[validN.length-1];
+    const selM = (Q && Q.done && Q.mins) ? Q.mins : DEF.mins;
+    const selG = (Q && Q.done) ? (Q.klass||"") : DEF.group;
     el.innerHTML = `
       <div class="pagehead"><h2>${esc(t("quizH"))}</h2><p>${esc(t("quizP"))}</p></div>
       <div class="controls">
         <span class="ctl"><label>${esc(t("bank"))}</label>
-          <select id="c-lesson">${lessonOptions(Q && Q.done ? Q.lesson : "aula1")}</select></span>
+          <select id="c-lesson">${lessonOptions(defLesson)}</select></span>
         <span class="ctl"><label>${esc(t("nq"))}</label>
-          <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===(Q&&Q.done?Q.n:20)?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
+          <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===selN?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
         <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
-        <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects">${esc(t("grpArch"))}</option><option value="engineers">${esc(t("grpEng"))}</option></select></span>
+        <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects"${selG==="architects"?" selected":""}>${esc(t("grpArch"))}</option><option value="engineers"${selG==="engineers"?" selected":""}>${esc(t("grpEng"))}</option></select></span>
         <label class="chk"><input type="checkbox" id="c-sq" checked> ${esc(t("shufQ"))}</label>
         <label class="chk"><input type="checkbox" id="c-so" checked> ${esc(t("shufO"))}</label>
         <label class="chk"><input type="checkbox" id="c-ob" checked> ${esc(t("oneBy"))}</label>
-        <span class="ctl"><label>${esc(t("mins"))}</label><select id="c-min">${[15,10,5].map(v=>`<option value="${v}">${v}</option>`).join("")}</select></span>
+        <span class="ctl"><label>${esc(t("mins"))}</label><select id="c-min">${[15,10,5].map(v=>`<option value="${v}"${v===selM?" selected":""}>${v}</option>`).join("")}</select></span>
         <button class="btn solid" id="c-start">${esc(t("start"))}</button>
+        <button class="btn" id="c-lock" title="${esc(t("lockB"))}">${UNLOCKED?"🔓":"🔒"}</button>
+        <span class="ctl" id="c-codewrap" style="display:none"><label>${esc(t("codeL"))}</label><input type="password" id="c-code" style="width:110px" autocomplete="off"><button class="btn" id="c-codeok">OK</button></span>
+        <span class="hint" id="c-lockmsg"></span>
       </div>
       <div id="q-result"></div>`;
+    ["c-lesson","c-n","c-min","c-sq","c-so","c-ob"].forEach(id=>{ const n=document.getElementById(id); if(n) n.disabled=!UNLOCKED; });
     $("#c-lesson").onchange = e => {
       const n = currentBank(e.target.value).length;
       const sel = $("#c-n");
       [...sel.options].forEach(o=>{ o.disabled = parseInt(o.value,10) > n; });
       if(parseInt(sel.value,10) > n){ sel.value = [...sel.options].filter(o=>!o.disabled).pop().value; }
     };
+    $("#c-lock").onclick = () => {
+      if(UNLOCKED){ UNLOCKED=false; renderQuiz(); return; }
+      const w=$("#c-codewrap");
+      w.style.display = w.style.display==="none" ? "" : "none";
+      if(w.style.display!=="none"){ refreshLockMsg(); $("#c-code").focus(); }
+    };
+    $("#c-codeok").onclick = tryCode;
+    $("#c-code").onkeydown = e => { if(e.key==="Enter") tryCode(); };
+    if(UNLOCKED){ $("#c-lockmsg").textContent=t("unlockedMsg"); }
     $("#c-start").onclick = startQuiz;
     if(Q && Q.done) renderResult($("#q-result"));
   } else {
@@ -299,7 +380,7 @@ function startQuiz(){
   const mins = parseInt($("#c-min").value||"0",10);
   Q = { lesson, n, items, ans:{}, i:0, done:false,
         oneBy:$("#c-ob").checked, name:$("#c-name").value.trim(),
-        klass:$("#c-klass").value.trim(), id:newAttemptId(),
+        klass:$("#c-klass").value.trim(), id:newAttemptId(), mins,
         startT:Date.now(), left:mins>0?mins*60:null, timerId:null, bankSize:bank.length };
   if(Q.left!==null){
     Q.timerId = setInterval(()=>{
@@ -389,8 +470,8 @@ function renderResult(el){
         return `<p class="qtext" style="font-size:14px">${i+1}. ${esc(it.q)} <span class="pill ${ok?"ok":"bad"}">${ok?"✓":"✗"}</span></p>
         <p class="hint">${esc(t("yourA"))}: <b>${Q.ans[i]===undefined?esc(t("noAns")):LETTERS[Q.ans[i]]+" — "+esc(it.opts[Q.ans[i]])}</b><br>${esc(t("rightA"))}: <b>${LETTERS[it.correct]} — ${esc(it.opts[it.correct])}</b></p>`;
       }).join("")+`</div></div>`;
-  $("#r-again").onclick=()=>{ const l=Q.lesson,nn=Q.n; Q=null; TAB="quiz"; renderTabs(); renderPage();
-    requestAnimationFrame(()=>{ $("#c-lesson").value=l; $("#c-lesson").dispatchEvent(new Event("change")); $("#c-n").value=nn; startQuiz(); }); };
+  $("#r-again").onclick=()=>{ const l=Q.lesson,nn=Q.n,mm=Q.mins||15; Q=null; TAB="quiz"; renderTabs(); renderPage();
+    requestAnimationFrame(()=>{ $("#c-lesson").value=l; $("#c-lesson").dispatchEvent(new Event("change")); $("#c-n").value=nn; $("#c-min").value=mm; startQuiz(); }); };
   $("#r-csv").onclick=()=>downloadCSV([resultRow()], "quiz-"+Q.id+".csv");
   $("#r-copy").onclick=()=>{
     const s=`${Q.id} · ${LESSON[LANG][Q.lesson]} · ${Q.score}/${Q.n} (${pct.toFixed(0)}%) · ${fmtTime(Q.secs)}${Q.name?" · "+Q.name:""}${Q.klass?" · "+Q.klass:""}`;
@@ -525,6 +606,7 @@ function renderRes(){
       <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(r.date)}</td><td>${esc(r.name||"—")}${r.klass?" · "+esc(grpLabel(r.klass)):""}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
     </table></div></div>`:`<p class="hint">${esc(t("empty"))}</p>`);
   $("#e-url").value=submitURL();
+  if(!UNLOCKED){ $("#e-url").disabled=true; $("#e-save").disabled=true; }
   $("#e-save").onclick=()=>{ try{localStorage.setItem("qa_submit",$("#e-url").value.trim());}catch(e){} $("#e-msg").textContent=t("submitSaved"); };
   if(all.length){
     $("#e-all").onclick=()=>downloadCSV(loadRes(),"quiz-results.csv");
