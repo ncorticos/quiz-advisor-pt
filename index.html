@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.6.0 — 2026-10-07
+  Quizzes Machine 1.6.1 — 2026-10-07
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.01–L.03.
 
@@ -139,7 +139,7 @@ pt:{
  quizP:"Cada aluno recebe uma seleção diferente de perguntas e opções baralhadas. Defina a aula e o número de perguntas, iguais para a turma.",
  bank:"Banco de perguntas", nq:"N.º perguntas", name:"Nome", klass:"Turma / Sessão",
  shufQ:"Baralhar perguntas", shufO:"Baralhar opções", oneBy:"Uma de cada vez", mins:"Minutos",
- start:"Começar questionário", qOf:"Pergunta", of:"de", finish:"Terminar", prev:"← Anterior", next:"Seguinte →",
+ start:"Prosseguir", qOf:"Pergunta", of:"de", finish:"Terminar", prev:"← Anterior", next:"Seguinte →",
  pickAll:"Responda a todas as perguntas antes de terminar.",
  score:"Pontuação", correct:"Certas", total:"perguntas", time:"Tempo", attempt:"Tentativa",
  again:"Repetir com novas perguntas", csv1:"Exportar CSV", copy:"Copiar resumo",
@@ -175,7 +175,7 @@ en:{
  quizP:"Each student gets a different selection of questions with shuffled options. Set the lesson and number of questions, same for the class.",
  bank:"Question bank", nq:"Questions", name:"Name", klass:"Group / Session",
  shufQ:"Shuffle questions", shufO:"Shuffle options", oneBy:"One at a time", mins:"Minutes",
- start:"Start quiz", qOf:"Question", of:"of", finish:"Finish", prev:"← Previous", next:"Next →",
+ start:"Proceed", qOf:"Question", of:"of", finish:"Finish", prev:"← Previous", next:"Next →",
  pickAll:"Please answer all questions before finishing.",
  score:"Score", correct:"Correct", total:"questions", time:"Time", attempt:"Attempt",
  again:"Replay with new questions", csv1:"Export CSV", copy:"Copy summary",
@@ -344,7 +344,7 @@ function renderQuiz(){
         <label class="chk"><input type="checkbox" id="c-so" checked> ${esc(t("shufO"))}</label>
         <label class="chk"><input type="checkbox" id="c-ob" checked> ${esc(t("oneBy"))}</label>
         <span class="ctl"><label>${esc(t("mins"))}</label><select id="c-min">${[15,10,5].map(v=>`<option value="${v}"${v===selM?" selected":""}>${v}</option>`).join("")}</select></span>
-        <button class="btn solid" id="c-start">${esc(t("start"))}</button>
+        <button class="btn solid" id="c-start" disabled>${esc(t("start"))}</button>
         <button class="btn" id="c-lock" title="${esc(t("lockB"))}">${UNLOCKED?"🔓":"🔒"}</button>
         <span class="hint" id="c-warn"></span>
         <span class="ctl" id="c-codewrap" style="display:none"><label>${esc(t("codeL"))}</label><input type="password" id="c-code" style="width:110px" autocomplete="off"><button class="btn" id="c-codeok">OK</button></span>
@@ -362,6 +362,8 @@ function renderQuiz(){
     $("#c-code").onkeydown = e => { if(e.key==="Enter") tryCode(); };
     if(UNLOCKED){ $("#c-lockmsg").textContent=t("unlockedMsg"); }
     $("#c-start").onclick = startQuiz;
+    const gate=()=>{ $("#c-start").disabled = !($("#c-name").value.trim() && $("#c-klass").value); $("#c-warn").textContent=""; };
+    $("#c-name").oninput=gate; $("#c-klass").onchange=gate; gate();
     if(Q && Q.done) renderResult($("#q-result"));
   } else {
     renderAttempt(el);
