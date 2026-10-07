@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.5.3 — 2026-10-07
+  Quizzes Machine 1.5.4 — 2026-10-07
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.01–L.03.
 
@@ -164,7 +164,8 @@ pt:{
  grpArch:"Arquitetos", grpEng:"Engenheiros",
  lockB:"Definições", codeL:"Código", unlockedMsg:"Desbloqueado — volte a bloquear antes da aula.",
  wrongCode:"Código incorreto.", triesLeft:"tentativas restantes.",
- lockedMsg:"Bloqueado após códigos errados — tente dentro de", minShort:"min."
+ lockedMsg:"Bloqueado após códigos errados — tente dentro de", minShort:"min.",
+ needId:"Indique o nome e o grupo para começar."
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -198,7 +199,8 @@ en:{
  grpArch:"Architects", grpEng:"Engineers",
  lockB:"Settings", codeL:"Code", unlockedMsg:"Unlocked — re-lock before class.",
  wrongCode:"Wrong code.", triesLeft:"attempts left.",
- lockedMsg:"Locked after wrong codes — retry in", minShort:"min."
+ lockedMsg:"Locked after wrong codes — retry in", minShort:"min.",
+ needId:"Enter your name and group to start."
 }};
 const LESSON = {
 pt:{aula0:"Aula 0 — Conhecimento e Investigação Científica",aula1:"Aula 1 — Evolução do Clima",aula2:"Aula 2 — Análise Climática",aula3:"Aula 3 — Arquitetura Bioclimática"},
@@ -341,6 +343,7 @@ function renderQuiz(){
         <span class="ctl"><label>${esc(t("mins"))}</label><select id="c-min">${[15,10,5].map(v=>`<option value="${v}"${v===selM?" selected":""}>${v}</option>`).join("")}</select></span>
         <button class="btn solid" id="c-start">${esc(t("start"))}</button>
         <button class="btn" id="c-lock" title="${esc(t("lockB"))}">${UNLOCKED?"🔓":"🔒"}</button>
+        <span class="hint" id="c-warn"></span>
         <span class="ctl" id="c-codewrap" style="display:none"><label>${esc(t("codeL"))}</label><input type="password" id="c-code" style="width:110px" autocomplete="off"><button class="btn" id="c-codeok">OK</button></span>
         <span class="hint" id="c-lockmsg"></span>
       </div>
@@ -368,6 +371,12 @@ function renderQuiz(){
   }
 }
 function startQuiz(){
+  const nm=$("#c-name").value.trim(), kg=$("#c-klass").value;
+  if(!nm || !kg){
+    $("#c-warn").textContent=t("needId");
+    (!nm?$("#c-name"):$("#c-klass")).focus();
+    return;
+  }
   const lesson = $("#c-lesson").value;
   const bank = currentBank(lesson);
   const n = Math.max(1, Math.min(bank.length, parseInt($("#c-n").value||"10",10)));
