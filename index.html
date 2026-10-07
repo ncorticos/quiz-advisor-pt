@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.5.4 — 2026-10-07
+  Quizzes Machine 1.5.5 — 2026-10-07
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.01–L.03.
 
@@ -315,7 +315,7 @@ function renderPage(){
 /* ---------- quiz tab ---------- */
 function lessonOptions(sel){
   return ["aula0","aula1","aula2","aula3"].map(k =>
-    `<option value="${k}"${k===sel?" selected":""}>${esc(LESSON[LANG][k])} (${BANKS[LANG][k].length}) · ${BANK_YEAR}</option>`).join("");
+    `<option value="${k}"${k===sel?" selected":""}>${esc(LESSON[LANG][k])} (${BANKS[LANG][k].length})</option>`).join("");
 }
 function renderQuiz(){
   const el = $("#pg-quiz");
