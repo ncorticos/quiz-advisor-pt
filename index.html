@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.5.2 — 2026-10-07
+  Quizzes Machine 1.5.3 — 2026-10-07
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.01–L.03.
 
@@ -330,7 +330,7 @@ function renderQuiz(){
       <div class="pagehead"><h2>${esc(t("quizH"))}</h2><p>${esc(t("quizP"))}</p></div>
       <div class="controls">
         <span class="ctl"><label>${esc(t("bank"))}</label>
-          <select id="c-lesson">${lessonOptions(defLesson)}</select></span>
+          <select id="c-lesson">${lessonOptions(defLesson)}</select><span class="pill idle">${BANK_YEAR}</span></span>
         <span class="ctl"><label>${esc(t("nq"))}</label>
           <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===selN?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
         <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
@@ -515,7 +515,7 @@ function renderProj(){
   el.innerHTML = `
     <div class="pagehead"><h2>${esc(t("projH"))}</h2><p>${esc(t("projP"))}</p></div>
     <div class="controls">
-      <span class="ctl"><label>${esc(t("bank"))}</label><select id="p-lesson">${lessonOptions(P.lesson)}</select></span>
+      <span class="ctl"><label>${esc(t("bank"))}</label><select id="p-lesson">${lessonOptions(P.lesson)}</select><span class="pill idle">${BANK_YEAR}</span></span>
       <button class="btn solid" id="p-new">${esc(t("newQ"))}</button>
       <button class="btn" id="p-rev"${P.pos<0?" disabled":""}>${P.show?esc(t("hide")):esc(t("reveal"))}</button>
       <button class="btn" id="p-reset">${esc(t("reset"))}</button>
@@ -551,7 +551,7 @@ function renderBank(filter){
   el.innerHTML=`
     <div class="pagehead"><h2>${esc(t("bankH"))}</h2><p>${esc(t("bankP"))}</p></div>
     <div class="controls">
-      <span class="ctl"><label>${esc(t("bank"))}</label><select id="b-lesson">${lessonOptions(bk)}</select></span>
+      <span class="ctl"><label>${esc(t("bank"))}</label><select id="b-lesson">${lessonOptions(bk)}</select><span class="pill idle">${BANK_YEAR}</span></span>
       <span class="ctl"><label>${esc(t("search"))}</label><input type="text" id="b-f" value="${esc(filter||"")}" placeholder="${esc(t("search"))}"></span>
       <span class="meta">${rows.length}/${list.length}</span>
     </div>
