@@ -4,7 +4,7 @@ Randomised anti-copy classroom quizzes for architecture students —
 **Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency**
 (Lisbon School of Architecture, ULisboa).
 
-Live: https://ncorticos.github.io/quiz-advisor-pt/
+Live: https://ncorticos.github.io/quiz-machine/
 
 Single self-contained file (`index.html`, no build, no server, works offline).
 Same visual language as [Architecture Advisor](https://ncorticos.github.io/architecture-advisor-pt/).

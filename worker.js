@@ -15,7 +15,7 @@
 //  3. Worker > Settings > Variables: add secret GITHUB_TOKEN (the token),
 //     text CLASS_CODE (e.g. AULA1-OUT — announce it in class, change anytime),
 //     text REPO (e.g. ncorticos/quiz-results).
-//  4. Share with students: https://ncorticos.github.io/quiz-advisor-pt/?submit=<worker-url>
+//  4. Share with students: https://ncorticos.github.io/quiz-machine/?submit=<worker-url>
 //     (or they paste <worker-url> once in 04 Resultados > Ligação de envio).
 
 const GH = "https://api.github.com";
