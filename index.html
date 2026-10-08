@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.6.1 — 2026-10-07
+  Quizzes Machine 1.7.0 — 2026-10-08
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
-  Banco: 554 perguntas extraídas das aulas PPTX L.01–L.03.
+  Banco: 554 perguntas extraídas das aulas PPTX L.00–L.03.
 
   GITHUB PAGES: faça push deste ficheiro para o repositório e ative
   Settings > Pages > Deploy from branch. Não precisa de build nem servidor.
@@ -125,7 +125,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Banco extraído das aulas L.01–L.03 · cada tentativa baralha perguntas e opções · ficheiro único, funciona offline e no GitHub Pages.</span></footer>
+  <footer><span data-t="foot">Banco extraído das aulas L.00–L.03 · cada tentativa baralha perguntas e opções · ficheiro único, funciona offline e no GitHub Pages.</span></footer>
 </main>
 <script>
 "use strict";
@@ -136,7 +136,7 @@ pt:{
  brandsub:"Conforto Ambiental & Eficiência Energética",
  tabs:[["quiz","01","Questionário"],["proj","02","Projetor"],["bank","03","Banco"],["res","04","Resultados"]],
  quizH:"Questionário aleatório anti-cópia",
- quizP:"Cada aluno recebe uma seleção diferente de perguntas e opções baralhadas. Defina a aula e o número de perguntas, iguais para a turma.",
+ quizP:"Escreva o nome, escolha o grupo e carregue em Prosseguir para abrir as perguntas projetadas.",
  bank:"Banco de perguntas", nq:"N.º perguntas", name:"Nome", klass:"Turma / Sessão",
  shufQ:"Baralhar perguntas", shufO:"Baralhar opções", oneBy:"Uma de cada vez", mins:"Minutos",
  start:"Prosseguir", qOf:"Pergunta", of:"de", finish:"Terminar", prev:"← Anterior", next:"Seguinte →",
@@ -172,7 +172,7 @@ en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
  tabs:[["quiz","01","Quiz"],["proj","02","Projector"],["bank","03","Bank"],["res","04","Results"]],
  quizH:"Randomised anti-copy quiz",
- quizP:"Each student gets a different selection of questions with shuffled options. Set the lesson and number of questions, same for the class.",
+ quizP:"Type your name, choose your group, then press Proceed to open the projected questions.",
  bank:"Question bank", nq:"Questions", name:"Name", klass:"Group / Session",
  shufQ:"Shuffle questions", shufO:"Shuffle options", oneBy:"One at a time", mins:"Minutes",
  start:"Proceed", qOf:"Question", of:"of", finish:"Finish", prev:"← Previous", next:"Next →",
@@ -230,7 +230,7 @@ const DEF = (()=>{
   const okL=["aula0","aula1","aula2","aula3"], okN=[20,30,40,50], okM=[15,10,5];
   const n=parseInt(g.n||"20",10), m=parseInt(g.mins||"15",10);
   return {
-    lesson: okL.includes(g.lesson)?g.lesson:"aula1",
+    lesson: okL.includes(g.lesson)?g.lesson:"aula0",
     n: okN.includes(n)?n:20,
     mins: okM.includes(m)?m:15,
     group: ["architects","engineers"].includes(g.group)?g.group:""
@@ -330,6 +330,10 @@ function renderQuiz(){
     const selN = validN.includes(wantN) ? wantN : validN[validN.length-1];
     const selM = (Q && Q.done && Q.mins) ? Q.mins : DEF.mins;
     const selG = (Q && Q.done) ? (Q.klass||"") : DEF.group;
+    let savedN="", savedG="";
+    try{ savedN=localStorage.getItem("qm_name")||""; savedG=localStorage.getItem("qm_group")||""; }catch(e){}
+    const showN = ((Q && Q.done && Q.name) ? Q.name : savedN);
+    const showG = selG || savedG;
     el.innerHTML = `
       <div class="pagehead"><h2>${esc(t("quizH"))}</h2><p>${esc(t("quizP"))}</p></div>
       <div class="controls">
@@ -338,8 +342,8 @@ function renderQuiz(){
         <span class="meta" id="c-bankname">${esc(LESSON[LANG][defLesson])} (${currentBank(defLesson).length})</span>
         <span class="ctl"><label>${esc(t("nq"))}</label>
           <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===selN?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
-        <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
-        <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects"${selG==="architects"?" selected":""}>${esc(t("grpArch"))}</option><option value="engineers"${selG==="engineers"?" selected":""}>${esc(t("grpEng"))}</option></select></span>
+        <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—" value="${esc(showN)}"></span>
+        <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects"${showG==="architects"?" selected":""}>${esc(t("grpArch"))}</option><option value="engineers"${showG==="engineers"?" selected":""}>${esc(t("grpEng"))}</option></select></span>
         <label class="chk"><input type="checkbox" id="c-sq" checked> ${esc(t("shufQ"))}</label>
         <label class="chk"><input type="checkbox" id="c-so" checked> ${esc(t("shufO"))}</label>
         <label class="chk"><input type="checkbox" id="c-ob" checked> ${esc(t("oneBy"))}</label>
@@ -361,7 +365,14 @@ function renderQuiz(){
     $("#c-codeok").onclick = tryCode;
     $("#c-code").onkeydown = e => { if(e.key==="Enter") tryCode(); };
     if(UNLOCKED){ $("#c-lockmsg").textContent=t("unlockedMsg"); }
-    $("#c-start").onclick = startQuiz;
+    $("#c-start").onclick = ()=>{
+      const nm=$("#c-name").value.trim(), kg=$("#c-klass").value;
+      if(!nm || !kg){ $("#c-warn").textContent=t("needId"); return; }
+      try{ localStorage.setItem("qm_name",nm); localStorage.setItem("qm_group",kg); }catch(e){}
+      P.lesson=DEF.lesson; projReshuffle();
+      TAB="proj"; renderTabs(); renderPage();
+      window.scrollTo(0,0);
+    };
     const gate=()=>{ $("#c-start").disabled = !($("#c-name").value.trim() && $("#c-klass").value); $("#c-warn").textContent=""; };
     $("#c-name").oninput=gate; $("#c-klass").onchange=gate; gate();
     if(Q && Q.done) renderResult($("#q-result"));
@@ -511,7 +522,7 @@ async function sendResult(){
 }
 
 /* ---------- projector ---------- */
-let P = {lesson:"aula1", deck:[], pos:-1, show:false};
+let P = {lesson:"aula0", deck:[], pos:-1, show:false};
 function projReshuffle(){
   const bank = currentBank(P.lesson);
   P.deck = shuffle([...Array(bank.length).keys()]);
