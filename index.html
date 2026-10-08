@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.8.0 — 2026-10-08
+  Quizzes Machine 1.8.1 — 2026-10-08
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -179,7 +179,8 @@ pt:{
  reqRestart:"Pedir reinício", overT:"Tempo esgotado",
  overP:"O ciclo está bloqueado. Peça ao professor para desbloquear e reiniciar.",
  reqAsk:"Pedir ao professor por email", reqSent:"Pedido pronto — envie o email e aguarde o professor.",
- profUn:"Desbloqueio do professor", noProf:"Email do professor não configurado neste link — chame o docente."
+ profUn:"Desbloqueio do professor", noProf:"Email do professor não configurado neste link — chame o docente.",
+ bankLocked:"Banco bloqueado — introduza o código do professor para ver as perguntas e respostas."
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -219,7 +220,8 @@ en:{
  reqRestart:"Request restart", overT:"Time is up",
  overP:"The cycle is locked. Ask your teacher to unlock and restart it.",
  reqAsk:"Ask teacher by email", reqSent:"Request ready — send the email and wait for your teacher.",
- profUn:"Teacher unlock", noProf:"Teacher email not set in this link — call your teacher."
+ profUn:"Teacher unlock", noProf:"Teacher email not set in this link — call your teacher.",
+ bankLocked:"Bank locked — enter the teacher code to see the questions and answers."
 }};
 const LESSON = {
 pt:{aula0:"Aula 0 — Conhecimento e Investigação Científica",aula1:"Aula 1 — Evolução do Clima",aula2:"Aula 2 — Análise Climática",aula3:"Aula 3 — Arquitetura Bioclimática"},
@@ -660,6 +662,38 @@ ${location.href.split("?")[0]}`;
 /* ---------- bank tab ---------- */
 function renderBank(filter){
   const el=$("#pg-bank");
+  if(!UNLOCKED){
+    el.innerHTML=`
+    <div class="pagehead"><h2>${esc(t("bankH"))}</h2><p>${esc(t("bankP"))}</p></div>
+    <div class="panel"><div class="panel-body">
+      <p class="qtext">🔒 ${esc(t("bankLocked"))}</p>
+      <div class="controls" style="margin:0">
+        <span class="ctl"><label>${esc(t("codeL"))}</label><input type="password" id="b-code" style="width:130px" autocomplete="off"><button class="btn" id="b-codeok">OK</button></span>
+      </div>
+      <p class="hint" id="b-lockmsg" style="margin-bottom:0"></p>
+    </div></div>`;
+    $("#b-codeok").onclick=()=>{
+      const inp=$("#b-code"), msg=$("#b-lockmsg");
+      const now=Date.now(), info=lockInfo();
+      if(now<info.u){
+        const r=info.u-now;
+        msg.textContent=`${t("lockedMsg")} ${Math.floor(r/60000)}:${String(Math.floor(r%60000/1000)).padStart(2,"0")} ${t("minShort")}`;
+        return;
+      }
+      if(inp.value===SETTINGS_CODE){ lockSave({f:0,u:0}); UNLOCKED=true; renderTabs(); renderPage(); return; }
+      info.f=(info.f||0)+1;
+      if(info.f===3) info.u=now+5*60*1000;
+      else if(info.f===4) info.u=now+10*60*1000;
+      else if(info.f>=5) info.u=now+60*60*1000;
+      lockSave(info); inp.value="";
+      const ru=info.u-Date.now();
+      msg.textContent = ru>0
+        ? `${t("lockedMsg")} ${Math.floor(ru/60000)}:${String(Math.floor(ru%60000/1000)).padStart(2,"0")} ${t("minShort")}`
+        : `${t("wrongCode")} (${Math.max(0,3-info.f)} ${t("triesLeft")})`;
+    };
+    $("#b-code").onkeydown=e=>{ if(e.key==="Enter") $("#b-codeok").click(); };
+    return;
+  }
   const bk = $("#b-lesson") ? $("#b-lesson").value : "aula1";
   const list = BANKS[LANG][bk];
   const f=(filter||"").toLowerCase();
