@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.7.0 — 2026-10-08
+  Quizzes Machine 1.8.0 — 2026-10-08
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -105,6 +105,15 @@ table.data tbody tr:hover{background:var(--wash)}
 .proj-opt .L{font-family:var(--mono);font-size:12px;color:var(--muted);margin-right:10px}
 .proj-opt.reveal-ok{border-color:var(--good);background:var(--goodbg)}
 .hint{font-size:12px;color:var(--muted)}
+.ptimer{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-0.02em}
+.ptimer.g{color:#4d7c0f}.ptimer.y{color:#b45309}.ptimer.r{color:var(--bad)}
+.tbar{height:8px;background:var(--line2);border-radius:4px;overflow:hidden;margin:0 0 16px}
+.tbar>i{display:block;height:100%;width:100%;transition:width .8s linear,background .4s}
+.tbar>i.g{background:linear-gradient(90deg,#65A30D,#84cc16)}
+.tbar>i.y{background:linear-gradient(90deg,#D97706,#f59e0b)}
+.tbar>i.r{background:linear-gradient(90deg,#DC2626,#f87171)}
+.overbanner{border:1px solid var(--bad);background:var(--badbg);color:var(--bad);border-radius:8px;padding:12px 14px;font-weight:600;margin-bottom:12px}
+.reqpanel{border:1px dashed #c6cbc4;border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--wash)}
 footer{border-top:1px solid var(--line);margin-top:30px;padding:14px 0 30px;color:var(--muted);font-size:11.5px}
 code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1px solid var(--line2);border-radius:4px;padding:1px 5px}
 </style>
@@ -166,7 +175,11 @@ pt:{
  wrongCode:"Código incorreto.", triesLeft:"tentativas restantes.",
  lockedMsg:"Bloqueado após códigos errados — tente dentro de", minShort:"min.",
  needId:"Indique o nome e o grupo para começar.",
- calA:"Calendário Académico"
+ calA:"Calendário Académico",
+ reqRestart:"Pedir reinício", overT:"Tempo esgotado",
+ overP:"O ciclo está bloqueado. Peça ao professor para desbloquear e reiniciar.",
+ reqAsk:"Pedir ao professor por email", reqSent:"Pedido pronto — envie o email e aguarde o professor.",
+ profUn:"Desbloqueio do professor", noProf:"Email do professor não configurado neste link — chame o docente."
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -202,7 +215,11 @@ en:{
  wrongCode:"Wrong code.", triesLeft:"attempts left.",
  lockedMsg:"Locked after wrong codes — retry in", minShort:"min.",
  needId:"Enter your name and group to start.",
- calA:"Academic Calendar"
+ calA:"Academic Calendar",
+ reqRestart:"Request restart", overT:"Time is up",
+ overP:"The cycle is locked. Ask your teacher to unlock and restart it.",
+ reqAsk:"Ask teacher by email", reqSent:"Request ready — send the email and wait for your teacher.",
+ profUn:"Teacher unlock", noProf:"Teacher email not set in this link — call your teacher."
 }};
 const LESSON = {
 pt:{aula0:"Aula 0 — Conhecimento e Investigação Científica",aula1:"Aula 1 — Evolução do Clima",aula2:"Aula 2 — Análise Climática",aula3:"Aula 3 — Arquitetura Bioclimática"},
@@ -359,7 +376,7 @@ function renderQuiz(){
     $("#c-lock").onclick = () => {
       if(UNLOCKED){ UNLOCKED=false; renderQuiz(); return; }
       const w=$("#c-codewrap");
-      w.style.display = w.style.display==="none" ? "" : "none";
+      w.style.display = w.style.display==="none" ? "block" : "none";
       if(w.style.display!=="none"){ refreshLockMsg(); $("#c-code").focus(); }
     };
     $("#c-codeok").onclick = tryCode;
@@ -521,38 +538,118 @@ async function sendResult(){
   }catch(e){ msg.textContent=t("netFail"); btn.disabled=false; btn.textContent=t("send"); }
 }
 
-/* ---------- projector ---------- */
-let P = {lesson:"aula0", deck:[], pos:-1, show:false};
-function projReshuffle(){
+const BAKED_PROF = ""; // replaced at build; teacher address for restart requests (or ?prof= link)
+function profEmail(){
+  try{
+    const q = new URLSearchParams(location.search).get("prof");
+    if(q){ localStorage.setItem("qa_prof", q); return q; }
+    return localStorage.getItem("qa_prof") || BAKED_PROF || "";
+  }catch(e){ return BAKED_PROF || ""; }
+}
+/* ---------- projector (timed session, restart locked behind professor) ---------- */
+let P = {lesson:"aula0", deck:[], pos:-1, show:false, endsAt:0, over:false};
+function projReshuffle(full){
+  if(full!==false){ P.endsAt=0; P.over=false; if(window._ptT){clearInterval(window._ptT);window._ptT=null;} }
   const bank = currentBank(P.lesson);
   P.deck = shuffle([...Array(bank.length).keys()]);
   P.pos = -1; P.show = false;
 }
+function pBand(rem){ return rem>600?"g":rem>=300?"y":"r"; }
+function pTick(){
+  const tm=$("#p-timer"), bar=$("#p-bar");
+  if(!tm || !P.endsAt){ if(window._ptT){clearInterval(window._ptT);window._ptT=null;} return; }
+  const rem=Math.max(0, Math.round((P.endsAt-Date.now())/1000));
+  if(rem<=0){ pTimeUp(); return; }
+  const b=pBand(rem), total=DEF.mins*60;
+  tm.textContent=fmtTime(rem); tm.className="ptimer "+b;
+  if(bar){ bar.style.width=(rem/total*100).toFixed(1)+"%"; bar.className=b; }
+}
+function pTimeUp(){
+  P.over=true; P.endsAt=0;
+  if(window._ptT){clearInterval(window._ptT);window._ptT=null;}
+  if(TAB==="proj") renderProj();
+}
 function renderProj(){
+  if(window._ptT){clearInterval(window._ptT);window._ptT=null;}
   const el = $("#pg-proj");
   const bank = currentBank(P.lesson);
+  if(P.endsAt && Date.now()>=P.endsAt){ P.over=true; P.endsAt=0; }
+  const total=DEF.mins*60;
+  const rem=P.endsAt?Math.max(0,Math.round((P.endsAt-Date.now())/1000)):total;
+  const b=pBand(P.endsAt?rem:total+1);
   el.innerHTML = `
     <div class="pagehead"><h2>${esc(t("projH"))}</h2><p>${esc(t("projP"))}</p></div>
     <div class="controls">
       <span class="ctl"><label>${esc(t("bank"))}</label><select id="p-lesson">${lessonOptions(P.lesson)}</select><span class="pill idle">${BANK_YEAR}</span></span>
-      <button class="btn solid" id="p-new">${esc(t("newQ"))}</button>
-      <button class="btn" id="p-rev"${P.pos<0?" disabled":""}>${P.show?esc(t("hide")):esc(t("reveal"))}</button>
-      <button class="btn" id="p-reset">${esc(t("reset"))}</button>
+      <button class="btn solid" id="p-new"${P.over?" disabled":""}>${esc(t("newQ"))}</button>
+      <button class="btn" id="p-rev"${(P.pos<0||P.over)?" disabled":""}>${P.show?esc(t("hide")):esc(t("reveal"))}</button>
+      <button class="btn" id="p-reqb">${esc(t("reqRestart"))}</button>
+      <span class="ptimer ${b}" id="p-timer">${fmtTime(rem)}</span>
       <span class="meta">${P.pos>=0?(P.pos+1)+"/"+P.deck.length:"0/"+bank.length}</span>
     </div>
+    <div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div>
+    ${P.over?`<div class="overbanner">${esc(t("overT"))} — ${esc(t("overP"))}</div>`:""}
     <div class="panel"><div class="panel-body" id="p-card"></div></div>
+    <div class="reqpanel" id="p-req" style="display:none">
+      <div class="qnav" style="margin-top:0">
+        <a class="btn solid" id="p-mail" href="#">${esc(t("reqAsk"))}</a>
+        <span class="ctl"><label>${esc(t("profUn"))}</label><input type="password" id="p-code" style="width:110px" autocomplete="off"><button class="btn" id="p-codeok">OK</button></span>
+      </div>
+      <p class="hint" id="p-reqmsg" style="margin-bottom:0"></p>
+    </div>
     <p class="hint" id="p-msg"></p>`;
-  $("#p-lesson").onchange=e=>{P.lesson=e.target.value; projReshuffle(); renderProj();};
+  $("#p-lesson").onchange=e=>{P.lesson=e.target.value; projReshuffle(false); renderProj();};
   $("#p-new").onclick=()=>{
-    if(!P.deck.length) projReshuffle();
+    if(P.over) return;
+    if(!P.endsAt) P.endsAt=Date.now()+total*1000;
+    if(!P.deck.length) projReshuffle(false);
     P.pos++;
-    if(P.pos>=P.deck.length){ projReshuffle(); P.pos=0; $("#p-msg").textContent=t("exhausted"); }
+    if(P.pos>=P.deck.length){ projReshuffle(false); P.pos=0; $("#p-msg").textContent=t("exhausted"); }
     else $("#p-msg").textContent="";
     P.show=false; renderProj();
   };
-  $("#p-rev").onclick=()=>{P.show=!P.show; renderProj();};
-  $("#p-reset").onclick=()=>{projReshuffle(); renderProj();};
+  $("#p-rev").onclick=()=>{ if(P.over) return; P.show=!P.show; renderProj(); };
+  $("#p-reqb").onclick=()=>{
+    const r=$("#p-req");
+    r.style.display = r.style.display==="none" ? "block" : "none";
+    if(r.style.display!=="none") buildMail();
+  };
+  function buildMail(){
+    const pe=profEmail(), msg=$("#p-reqmsg"), mail=$("#p-mail");
+    let nm="",kg="";
+    try{ nm=localStorage.getItem("qm_name")||""; kg=localStorage.getItem("qm_group")||""; }catch(e){}
+    const subj=`[Quizzes Machine] Restart request — ${nm||"?"} (${kg||"?"})`;
+    const body=`${LESSON[LANG][P.lesson]} · ${BANK_YEAR}
+${t("thName")}: ${nm}
+${t("klass")}: ${kg}
+${t("qOf")} ${P.pos+1}/${P.deck.length} · ${new Date().toISOString().slice(0,16).replace("T"," ")}
+${location.href.split("?")[0]}`;
+    if(pe){ mail.href=`mailto:${pe}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`; mail.style.display=""; msg.textContent=""; }
+    else{ mail.style.display="none"; msg.textContent=t("noProf"); }
+  }
+  $("#p-mail").onclick=()=>{ $("#p-reqmsg").textContent=t("reqSent"); };
+  $("#p-code").onkeydown=e=>{ if(e.key==="Enter") $("#p-codeok").click(); };
+  $("#p-codeok").onclick=()=>{
+    const inp=$("#p-code"), msg=$("#p-reqmsg");
+    const now=Date.now(), info=lockInfo();
+    if(now<info.u){
+      const r=info.u-now;
+      msg.textContent=`${t("lockedMsg")} ${Math.floor(r/60000)}:${String(Math.floor(r%60000/1000)).padStart(2,"0")} ${t("minShort")}`;
+      return;
+    }
+    if(inp.value===SETTINGS_CODE){ lockSave({f:0,u:0}); projReshuffle(); renderProj(); return; }
+    info.f=(info.f||0)+1;
+    if(info.f===3) info.u=now+5*60*1000;
+    else if(info.f===4) info.u=now+10*60*1000;
+    else if(info.f>=5) info.u=now+60*60*1000;
+    lockSave(info); inp.value="";
+    const ru=info.u-Date.now();
+    msg.textContent = ru>0
+      ? `${t("lockedMsg")} ${Math.floor(ru/60000)}:${String(Math.floor(ru%60000/1000)).padStart(2,"0")} ${t("minShort")}`
+      : `${t("wrongCode")} (${Math.max(0,3-info.f)} ${t("triesLeft")})`;
+  };
   const card=$("#p-card");
+  if(P.endsAt && !P.over){ if(window._ptT)clearInterval(window._ptT); window._ptT=setInterval(pTick,500); }
   if(P.pos<0){ card.innerHTML=`<p class="hint">${esc(t("projP"))}</p>`; return; }
   const s=bank[P.deck[P.pos]];
   const order=[0,1,2,3]; // fixed order on projector: same for the room
