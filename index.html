@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.8.1 — 2026-10-08
+  Quizzes Machine 1.8.2 — 2026-10-08
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -349,10 +349,6 @@ function renderQuiz(){
     const selN = validN.includes(wantN) ? wantN : validN[validN.length-1];
     const selM = (Q && Q.done && Q.mins) ? Q.mins : DEF.mins;
     const selG = (Q && Q.done) ? (Q.klass||"") : DEF.group;
-    let savedN="", savedG="";
-    try{ savedN=localStorage.getItem("qm_name")||""; savedG=localStorage.getItem("qm_group")||""; }catch(e){}
-    const showN = ((Q && Q.done && Q.name) ? Q.name : savedN);
-    const showG = selG || savedG;
     el.innerHTML = `
       <div class="pagehead"><h2>${esc(t("quizH"))}</h2><p>${esc(t("quizP"))}</p></div>
       <div class="controls">
@@ -361,8 +357,8 @@ function renderQuiz(){
         <span class="meta" id="c-bankname">${esc(LESSON[LANG][defLesson])} (${currentBank(defLesson).length})</span>
         <span class="ctl"><label>${esc(t("nq"))}</label>
           <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===selN?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
-        <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—" value="${esc(showN)}"></span>
-        <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects"${showG==="architects"?" selected":""}>${esc(t("grpArch"))}</option><option value="engineers"${showG==="engineers"?" selected":""}>${esc(t("grpEng"))}</option></select></span>
+        <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
+        <span class="ctl"><label>${esc(t("klass"))}</label><input type="text" id="c-klass" placeholder="—" value="${esc(selG)}"></span>
         <label class="chk"><input type="checkbox" id="c-sq" checked> ${esc(t("shufQ"))}</label>
         <label class="chk"><input type="checkbox" id="c-so" checked> ${esc(t("shufO"))}</label>
         <label class="chk"><input type="checkbox" id="c-ob" checked> ${esc(t("oneBy"))}</label>
@@ -393,7 +389,7 @@ function renderQuiz(){
       window.scrollTo(0,0);
     };
     const gate=()=>{ $("#c-start").disabled = !($("#c-name").value.trim() && $("#c-klass").value); $("#c-warn").textContent=""; };
-    $("#c-name").oninput=gate; $("#c-klass").onchange=gate; gate();
+    $("#c-name").oninput=gate; $("#c-klass").oninput=gate; gate();
     if(Q && Q.done) renderResult($("#q-result"));
   } else {
     renderAttempt(el);
