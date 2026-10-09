@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.12.4 — 2026-10-09
+  Quizzes Machine 1.13.0 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -145,6 +145,13 @@ table.trtab td.num{width:auto}
 .tbar>i.g{background:linear-gradient(90deg,#65A30D,#84cc16)}
 .tbar>i.y{background:linear-gradient(90deg,#D97706,#f59e0b)}
 .tbar>i.r{background:linear-gradient(90deg,#DC2626,#f87171)}
+.tbar>i.q{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
+.bars{display:grid;gap:8px;margin:0 0 16px}
+.barrow{display:grid;grid-template-columns:130px 1fr 60px;align-items:center;gap:10px}
+.barrow .tbar{margin:0}
+.barrow .bl{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.barrow .bv{font-family:var(--mono);font-size:12px;color:var(--ink2);text-align:right}
+@media(max-width:640px){.barrow{grid-template-columns:96px 1fr 48px;gap:8px}.barrow .bl{font-size:10px;letter-spacing:.04em}}
 .overbanner{border:1px solid var(--bad);background:var(--badbg);color:var(--bad);border-radius:8px;padding:12px 14px;font-weight:600;margin-bottom:12px}
 .reqpanel{border:1px dashed #c6cbc4;border-radius:8px;padding:12px 14px;margin-top:12px;background:var(--wash)}
 footer{border-top:1px solid var(--line);margin-top:30px;padding:14px 0 30px;color:var(--muted);font-size:11.5px}
@@ -167,7 +174,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.12.4</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.13.0</span></footer>
 </main>
 <script>
 "use strict";
@@ -233,8 +240,9 @@ pt:{
  wkCrash:"O Worker responde, mas falhou ao guardar. Docente: cole de novo o worker.js mais recente no Cloudflare e veja os Logs do Worker.",
  wkDown:"Sem resposta do Worker de resultados (verifique a ligação à Internet). Docente: confirme que o worker.js do quiz está publicado em",
  resLocked:"Exportar e apagar requerem o código do docente.",
- clsH:"Resultados da turma", clsGo:"Resultados da turma (CSV)", clsBusy:"A carregar…",
- clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results), num único CSV com a coluna da turma (código).",
+ clsH:"Resultados da turma", clsGo:"Descarregar CSV", clsShow:"Mostrar resultados da turma", clsBusy:"A carregar…",
+ clsAll:"Todas", clsCount:"tentativas", clsCount1:"tentativa", thisDev:"Neste dispositivo", clsAvg:"média", qLeft:"Perguntas por responder", tLeft:"Tempo restante",
+ clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results). A lista mostra código da turma, grupo, código da tentativa e nota, sem nomes; os nomes só aparecem no CSV.",
  clsDone:"tentativas descarregadas.", clsNone:"Ainda não há tentativas guardadas no Worker.",
  clsTrunc:"Apenas as primeiras 40 (o Worker não conseguiu ler a pasta inteira de uma vez).",
  clsSetup:"O Worker não tem a configuração de resultados (GITHUB_TOKEN / REPO).", clsFail:"Erro do Worker — tente de novo."
@@ -298,8 +306,9 @@ en:{
  wkCrash:"The Worker answers but failed while saving. Teacher: re-paste the latest worker.js in Cloudflare and check the Worker's Logs.",
  wkDown:"No answer from the results Worker (check the internet connection). Teacher: check that the quiz worker.js is deployed at",
  resLocked:"Exporting and clearing need the teacher code.",
- clsH:"Class results", clsGo:"Class results (CSV)", clsBusy:"Loading…",
- clsP:"Every attempt your students sent to the Worker (private quiz-results repository), in one CSV with a class (code) column.",
+ clsH:"Class results", clsGo:"Download CSV", clsShow:"Show class results", clsBusy:"Loading…",
+ clsAll:"All", clsCount:"attempts", clsCount1:"attempt", thisDev:"This device", clsAvg:"average", qLeft:"Questions left", tLeft:"Time left",
+ clsP:"Every attempt your students sent to the Worker (private quiz-results repository). The list shows class code, group, attempt code and score, without names; names appear only in the CSV.",
  clsDone:"attempts downloaded.", clsNone:"No attempts stored in the Worker yet.",
  clsTrunc:"First 40 only (the Worker could not read the whole folder at once).",
  clsSetup:"The Worker has no results setup (GITHUB_TOKEN / REPO).", clsFail:"Worker error — try again."
@@ -712,6 +721,12 @@ function pTick(){
   const b=pBand(rem), total=DEF.mins*60;
   tm.textContent=fmtTime(rem); tm.className="ptimer "+b;
   if(bar){ bar.style.width=(rem/total*100).toFixed(1)+"%"; bar.className=b; }
+  const tl=$("#p-tleft"); if(tl) tl.textContent=fmtTime(rem);
+}
+function qLeftDraw(){ // attempt: the "questions left" bar shrinks with every answer
+  const left=S.n-Object.keys(S.ans).length, bar=$("#p-qbar"), v=$("#p-qleft");
+  if(bar) bar.style.width=(left/S.n*100).toFixed(1)+"%";
+  if(v) v.textContent=`${left}/${S.n}`;
 }
 function pTimeUp(){
   P.over=true; P.endsAt=0;
@@ -743,7 +758,10 @@ function renderProj(){
       ${ended?"":`<span class="ptimer ${b}" id="p-timer">${fmtTime(rem)}</span>`}
       <span class="meta">${count}</span>
     </div>
-    ${ended?"":`<div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div>`}
+    ${ended?"":sess?`<div class="bars">
+      <div class="barrow"><span class="bl">${esc(t("qLeft"))}</span><div class="tbar"><i id="p-qbar" class="q" style="width:${((S.n-Object.keys(S.ans).length)/S.n*100).toFixed(1)}%"></i></div><span class="bv" id="p-qleft">${S.n-Object.keys(S.ans).length}/${S.n}</span></div>
+      <div class="barrow"><span class="bl">${esc(t("tLeft"))}</span><div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div><span class="bv" id="p-tleft">${fmtTime(rem)}</span></div>
+    </div>`:`<div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div>`}
     ${P.over?`<div class="overbanner">${esc(t("overT"))} — ${esc(t("overP"))}</div>`:""}
     <div class="panel"><div class="panel-body" id="p-card"></div></div>
     <div class="reqpanel" id="p-req" style="display:none">
@@ -836,7 +854,7 @@ ${location.href.split("?")[0]}`;
     P.pick=parseInt(b.dataset.o,10);
     card.querySelectorAll(".proj-opt").forEach(x=>{ const on=x===b; x.classList.toggle("sel",on); x.setAttribute("aria-pressed",String(on)); });
     if(sess){ // record and move on; a second tap within the pause changes the answer
-      S.ans[P.pos]=P.pick;
+      S.ans[P.pos]=P.pick; qLeftDraw();
       clearTimeout(P.advT); P.advT=setTimeout(projAdvance, ADVANCE_MS);
     }
   });
@@ -1038,9 +1056,16 @@ function csvEsc(v){
   if(/^[=+\-@\t\r]/.test(v)) v="'"+v; // student-typed names must not run as spreadsheet formulas
   return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
 }
+function fmtLocal(s){ // stored dates are UTC ("…T15:54:02.744Z" or local rows "2026-10-09 15:54") → local "YYYY-MM-DD HH:MM"
+  s=String(s||"");
+  const d=new Date(/(Z|[+-]\d\d:?\d\d)$/.test(s) ? s : s.replace(" ","T")+(s.length<=16?":00Z":"Z"));
+  if(isNaN(d)) return s;
+  const p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
 function downloadCSV(rows, fname, withClass){
   const head=["date","name","group",...(withClass?["class"]:[]),"bank","attempt","n","score","pct","secs","detail"];
-  const lines=[head.join(";")].concat(rows.map(r=>[r.date,r.name,r.klass,...(withClass?[r.cls]:[]),r.lesson,r.id,r.n,r.score,r.pct,r.secs,r.detail].map(csvEsc).join(";")));
+  const lines=[head.join(";")].concat(rows.map(r=>[fmtLocal(r.date),r.name,r.klass,...(withClass?[r.cls]:[]),r.lesson,r.id,r.n,r.score,r.pct,r.secs,r.detail].map(csvEsc).join(";")));
   const blob=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname;
   document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
@@ -1067,12 +1092,13 @@ function renderRes(){
     (!UNLOCKED?"":`<div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("clsH"))}</h3><p>${esc(t("clsP"))}</p></div></div>
       <div class="panel-body"><div class="controls" style="margin:0">
         <span class="ctl"><label>${esc(t("trCode"))}</label><input type="password" id="e-tcode" style="width:130px" autocomplete="off"></span>
-        <button class="btn solid" id="e-cls">${esc(t("clsGo"))}</button>
+        <button class="btn solid" id="e-clsshow">${esc(t("clsShow"))}</button>
+        <button class="btn" id="e-cls">${esc(t("clsGo"))}</button>
         <span class="hint" id="e-clsmsg"></span>
-      </div></div></div>`)+
-    (all.length?`<div class="panel"><div class="tbl-scroll"><table class="data">
+      </div><div id="e-clsout"></div></div></div>`)+
+    (all.length?`<div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("thisDev"))}</h3></div></div><div class="tbl-scroll"><table class="data">
       <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
-      <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(r.date)}</td><td>${esc(grpLabel(r.klass)||"—")}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
+      <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(grpLabel(r.klass)||"—")}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
     </table></div></div>`:`<p class="hint">${esc(t("empty"))}</p>`);
   $("#e-url").value=submitURL();
   if(!UNLOCKED){ $("#e-url").disabled=true; $("#e-save").disabled=true; }
@@ -1086,7 +1112,10 @@ function renderRes(){
   $("#e-lock").onclick=()=>{ UNLOCKED=false; renderRes(); };
   $("#e-tcode").value=TRCODE;
   $("#e-tcode").oninput=e=>{ TRCODE=e.target.value; };
+  $("#e-tcode").onkeydown=e=>{ if(e.key==="Enter") showClass(); };
+  $("#e-clsshow").onclick=showClass;
   $("#e-cls").onclick=classCSV;
+  drawClass();
   if(all.length){
     $("#e-all").onclick=()=>downloadCSV(loadRes(),"quiz-results.csv");
     $("#e-clear").onclick=()=>{localStorage.removeItem(LSKEY); renderRes();};
@@ -1105,26 +1134,58 @@ function codeCheck(val){ // teacher code with the shared escalating lockout; "" 
   const ru=info.u-Date.now();
   return ru>0 ? wait(ru) : `${t("wrongCode")} (${Math.max(0,3-info.f)} ${t("triesLeft")})`;
 }
-async function classCSV(){ // every attempt sent to the Worker (private quiz-results repo), one CSV
-  const url=submitURL(), msg=$("#e-clsmsg"), btn=$("#e-cls");
-  if(!url){ msg.textContent=t("trNeedURL"); return; }
-  if(!TRCODE){ msg.textContent=t("trNeedCode"); $("#e-tcode").focus(); return; }
-  btn.disabled=true; msg.textContent=t("clsBusy");
+/* ---------- class results: every attempt sent to the Worker (private quiz-results repo) ---------- */
+let CLS = null; // {records, filter}: last list loaded in this tab (kept across re-renders, never stored)
+async function fetchClass(){ // records, or null with the reason shown
+  const url=submitURL(), msg=$("#e-clsmsg");
+  if(!url){ msg.textContent=t("trNeedURL"); return null; }
+  if(!TRCODE){ msg.textContent=t("trNeedCode"); $("#e-tcode").focus(); return null; }
+  msg.textContent=t("clsBusy");
   try{
     const r=await toWorker(url,{action:"results",code:TRCODE});
     const j=await r.json().catch(()=>({}));
-    if(r.status===403) msg.textContent=t("trBadCode");
-    else if(j.error==="setup") msg.textContent=t("clsSetup");
-    else if(!r.ok || !j.ok || !Array.isArray(j.records)) msg.textContent=t("clsFail");
-    else if(!j.records.length) msg.textContent=t("clsNone");
-    else{
-      const rows=j.records.map(x=>({date:String(x.date).slice(0,16).replace("T"," "), name:x.name, klass:x.group, cls:x.class,
-        lesson:x.bank, id:x.id, n:x.n, score:x.score, pct:x.pct, secs:x.secs, detail:x.detail}));
-      downloadCSV(rows, "quiz-class-results-"+new Date().toISOString().slice(0,10)+".csv", true);
-      msg.textContent=`${rows.length} ${t("clsDone")}`+(j.truncated?` ${t("clsTrunc")}`:"");
-    }
-  }catch(e){ msg.textContent=await workerDiag(url); }
-  btn.disabled=false;
+    if(r.status===403){ msg.textContent=t("trBadCode"); return null; }
+    if(j.error==="setup"){ msg.textContent=t("clsSetup"); return null; }
+    if(!r.ok || !j.ok || !Array.isArray(j.records)){ msg.textContent=`${t("clsFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`; return null; }
+    msg.textContent=(j.records.length?`${j.records.length} ${t(j.records.length===1?"clsCount1":"clsCount")}`:t("clsNone"))+(j.truncated?` ${t("clsTrunc")}`:"");
+    CLS={records:j.records, filter:CLS?CLS.filter:""};
+    return j.records;
+  }catch(e){ msg.textContent=await workerDiag(url); return null; }
+}
+async function showClass(){
+  const btn=$("#e-clsshow"); btn.disabled=true;
+  await fetchClass(); drawClass();
+  if($("#e-clsshow")) $("#e-clsshow").disabled=false;
+}
+async function classCSV(){ // always a fresh list; also refreshes the table on screen
+  const btn=$("#e-cls"); btn.disabled=true;
+  const recs=await fetchClass(); drawClass();
+  if(recs && recs.length){
+    const rows=recs.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).map(x=>({date:x.date, name:x.name, klass:x.group, cls:x.class,
+      lesson:x.bank, id:x.id, n:x.n, score:x.score, pct:x.pct, secs:x.secs, detail:x.detail}));
+    downloadCSV(rows, "quiz-class-results-"+new Date().toISOString().slice(0,10)+".csv", true);
+    $("#e-clsmsg").textContent=`${rows.length} ${t("clsDone")}`;
+  }
+  if($("#e-cls")) $("#e-cls").disabled=false;
+}
+function drawClass(){ // list on screen without student names (names only in the CSV): find a score by attempt code
+  const out=$("#e-clsout"); if(!out) return;
+  if(!CLS || !CLS.records.length){ out.innerHTML=""; return; }
+  const classes=[...new Set(CLS.records.map(r=>r.class).filter(Boolean))].sort();
+  if(CLS.filter && !classes.includes(CLS.filter)) CLS.filter="";
+  const rows=CLS.records.filter(r=>!CLS.filter || r.class===CLS.filter).slice()
+    .sort((a,b)=>String(b.date).localeCompare(String(a.date))); // newest first
+  const avg=rows.length ? rows.reduce((s,r)=>s+(+r.pct||0),0)/rows.length : 0;
+  out.innerHTML=`<div class="controls" style="margin:12px 0 10px">
+      <span class="ctl"><label>${esc(t("code"))}</label><select id="e-clsf"><option value="">${esc(t("clsAll"))}</option>${
+        classes.map(c=>`<option value="${esc(c)}"${c===CLS.filter?" selected":""}>${esc(c)}</option>`).join("")}</select></span>
+      <span class="meta">${rows.length} ${esc(t(rows.length===1?"clsCount1":"clsCount"))} · ${esc(t("clsAvg"))} ${avg.toFixed(0)}%</span>
+    </div>
+    <div class="tbl-scroll"><table class="data">
+      <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("code"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(r.class||"—")}</td><td>${esc(grpLabel(r.group)||"—")}<br><span class="meta">${esc(r.bank)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${esc(r.score)}/${esc(r.n)} · ${esc(r.pct)}%</td><td class="num">${fmtTime(+r.secs||0)}</td></tr>`).join("")}</tbody>
+    </table></div>`;
+  $("#e-clsf").onchange=e=>{ CLS.filter=e.target.value; drawClass(); };
 }
 
 /* ---------- language ---------- */
