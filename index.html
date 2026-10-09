@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.17.2 — 2026-10-09 19:53 (Lisbon)
+  Quizzes Machine 1.17.3 — 2026-10-09 20:04 (Lisbon)
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -193,7 +193,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
   <section class="page" id="pg-lab"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.17.2 · 2026-10-09 19:53</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.17.3 · 2026-10-09 20:04</span></footer>
 </main>
 <script>
 "use strict";
@@ -228,7 +228,7 @@ pt:{
  netFail:"Falha de rede — tente de novo.",
  submitLink:"Ligação de envio", submitSet:"Guardar", submitSaved:"Ligação guardada.",
  submitP:"Cole aqui a ligação de envio dada pelo docente (uma vez por dispositivo).",
- grpArch:"Arquitetos", grpEng:"Engenheiros", kindTheory:"Teórica", kindLab:"LAB", kindAria:"Tipo de sessão", labGroup:"Grupo de laboratório", nameFull:"Nome e apelido", nameFullPh:"Nome Apelido", needFull:"Indique o nome e o apelido.",
+ grpArch:"Arquitetos", grpEng:"Engenheiros", kindTheory:"Teórica", kindLab:"LAB", kindAria:"Tipo de sessão", labGroup:"Grupo de laboratório",
  rosterH:"Grupos de laboratório", rosterStud:"alunos", rosterP:"Nomes do roster.json no repositório privado quiz-results (nunca no código da página). Para editar: GitHub > quiz-results > roster.json.", rosterNone:"Ainda não há roster.json no repositório quiz-results.", rosterBad:"O roster.json do quiz-results não é JSON válido.", rosterOld:"Para ver os grupos de laboratório, atualize o Worker: Cloudflare > quiz-results > Edit code > colar o worker.js atual > Deploy.",
  lockB:"Definições", codeL:"Código", unlockedMsg:"Desbloqueado — volte a bloquear antes da aula.",
  wrongCode:"Código incorreto.", triesLeft:"tentativas restantes.",
@@ -262,7 +262,7 @@ pt:{
  wkDown:"Sem resposta do Worker de resultados (verifique a ligação à Internet). Docente: confirme que o worker.js do quiz está publicado em",
  resLocked:"Exportar e apagar requerem o código do docente.",
  clsH:"Resultados da turma", clsGo:"Descarregar CSV", clsBusy:"A carregar…",
- labProf:"Docente de laboratório", labMembers:"Elementos do grupo", tabLab:"Entregas", labH:"Entregas de laboratório", labP:"Escreva o nome e o apelido, escolha o grupo de laboratório e entregue cada entrega aberta: um PDF (até 10 MB) ou um link (Drive / OneDrive). Uma nova entrega substitui a anterior enquanto estiver aberta.", labSub:"Entrega", labOpen:"Aberta", labClosed:"Fechada", labDone:"Entregue", labOr:"ou link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Entregar", labResend:"Substituir", labSending:"A enviar…", labSent:"Entregue ✓", labLast:"Última:", labPick:"Escolha o grupo de laboratório para ver as entregas.", labNeedFile:"Escolha um PDF ou cole um link.", labTooBig:"O PDF tem mais de 10 MB: comprima-o ou entregue um link.", labNotPdf:"Só ficheiros PDF.", labBadLink:"O link tem de começar por https://", labClosedMsg:"Fechada: o docente abre-a na aula.", labIsClosed:"Esta entrega está fechada.", labReplace:"Entregar de novo substitui a anterior.", labOld:"As entregas ainda não estão disponíveis: o docente tem de atualizar o Worker.", labAdmH:"Entregas de laboratório", labAdmP:"Abra ou feche cada entrega para todos os grupos. Passe o rato sobre ✓ para ver quem entregou.", labOpenB:"Abrir", labCloseB:"Fechar", labOpenList:"abertas", labNone:"nenhuma", labGrp:"Grupo", labAdmOld:"Para gerir as entregas de laboratório, atualize o Worker: Cloudflare > quiz-results > Edit code > colar o worker.js atual > Deploy.",
+ labProf:"Docente de laboratório", labMembers:"Elementos do grupo", tabLab:"Entregas", labH:"Entregas de laboratório", labP:"Escolha o grupo de laboratório: aparecem os elementos do grupo e as cinco entregas. Entregue cada entrega aberta: um PDF (até 10 MB) ou um link (Drive / OneDrive). Uma nova entrega substitui a anterior enquanto estiver aberta.", labSub:"Entrega", labOpen:"Aberta", labClosed:"Fechada", labDone:"Entregue", labOr:"ou link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Entregar", labResend:"Substituir", labSending:"A enviar…", labSent:"Entregue ✓", labLast:"Última:", labPick:"Escolha o grupo de laboratório para ver as entregas.", labNeedFile:"Escolha um PDF ou cole um link.", labTooBig:"O PDF tem mais de 10 MB: comprima-o ou entregue um link.", labNotPdf:"Só ficheiros PDF.", labBadLink:"O link tem de começar por https://", labClosedMsg:"Fechada: o docente abre-a na aula.", labIsClosed:"Esta entrega está fechada.", labReplace:"Entregar de novo substitui a anterior.", labOld:"As entregas ainda não estão disponíveis: o docente tem de atualizar o Worker.", labAdmH:"Entregas de laboratório", labAdmP:"Abra ou feche cada entrega para todos os grupos.", labOpenB:"Abrir", labCloseB:"Fechar", labOpenList:"abertas", labNone:"nenhuma", labGrp:"Grupo", labAdmOld:"Para gerir as entregas de laboratório, atualize o Worker: Cloudflare > quiz-results > Edit code > colar o worker.js atual > Deploy.",
  thPts:"Pontos (0–5)", ptsUnit:"pontos", clsAll:"Todas", clsCount:"tentativas", clsCount1:"tentativa", thisDev:"Neste dispositivo", clsAvg:"média", qLeft:"Perguntas por responder", tLeft:"Tempo restante",
  clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results). A lista mostra código da turma, grupo, código da tentativa e nota, sem nomes; os nomes só aparecem no CSV.",
  clsDone:"tentativas descarregadas.", clsNone:"Ainda não há tentativas guardadas no Worker.",
@@ -298,7 +298,7 @@ en:{
  netFail:"Network error — try again.",
  submitLink:"Submit link", submitSet:"Save", submitSaved:"Link saved.",
  submitP:"Paste here the submit link given by your teacher (once per device).",
- grpArch:"Architects", grpEng:"Engineers", kindTheory:"Theoretical", kindLab:"LAB", kindAria:"Session type", labGroup:"Lab group", nameFull:"First name and surname", nameFullPh:"First name Surname", needFull:"Enter your first name and surname.",
+ grpArch:"Architects", grpEng:"Engineers", kindTheory:"Theoretical", kindLab:"LAB", kindAria:"Session type", labGroup:"Lab group",
  rosterH:"Lab groups", rosterStud:"students", rosterP:"Names from roster.json in the private quiz-results repository (never in the page code). To edit: GitHub > quiz-results > roster.json.", rosterNone:"No roster.json in the quiz-results repository yet.", rosterBad:"roster.json in quiz-results is not valid JSON.", rosterOld:"To see the lab groups, update the Worker: Cloudflare > quiz-results > Edit code > paste the current worker.js > Deploy.",
  lockB:"Settings", codeL:"Code", unlockedMsg:"Unlocked — re-lock before class.",
  wrongCode:"Wrong code.", triesLeft:"attempts left.",
@@ -332,7 +332,7 @@ en:{
  wkDown:"No answer from the results Worker (check the internet connection). Teacher: check that the quiz worker.js is deployed at",
  resLocked:"Exporting and clearing need the teacher code.",
  clsH:"Class results", clsGo:"Download CSV", clsBusy:"Loading…",
- labProf:"Lab professor", labMembers:"Group members", tabLab:"Submissions", labH:"Lab submissions", labP:"Type your first name and surname, choose your lab group and hand in each open submission: a PDF (up to 10 MB) or a link (Drive / OneDrive). While a submission is open, a new one replaces the previous one.", labSub:"Submission", labOpen:"Open", labClosed:"Closed", labDone:"Submitted", labOr:"or link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Submit", labResend:"Replace", labSending:"Uploading…", labSent:"Submitted ✓", labLast:"Last:", labPick:"Choose your lab group to see its submissions.", labNeedFile:"Choose a PDF or paste a link.", labTooBig:"The PDF is larger than 10 MB: compress it or submit a link.", labNotPdf:"PDF files only.", labBadLink:"The link must start with https://", labClosedMsg:"Closed: your teacher opens it in class.", labIsClosed:"This submission is closed.", labReplace:"Submitting again replaces the previous one.", labOld:"Submissions are not available yet: the teacher must update the Worker.", labAdmH:"Lab submissions", labAdmP:"Open or close each submission for every group. Hover over ✓ to see who submitted.", labOpenB:"Open", labCloseB:"Close", labOpenList:"open", labNone:"none", labGrp:"Group", labAdmOld:"To manage the lab submissions, update the Worker: Cloudflare > quiz-results > Edit code > paste the current worker.js > Deploy.",
+ labProf:"Lab professor", labMembers:"Group members", tabLab:"Submissions", labH:"Lab submissions", labP:"Choose your lab group: its members and its five submissions appear below. Hand in each open submission: a PDF (up to 10 MB) or a link (Drive / OneDrive). While a submission is open, a new one replaces the previous one.", labSub:"Submission", labOpen:"Open", labClosed:"Closed", labDone:"Submitted", labOr:"or link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Submit", labResend:"Replace", labSending:"Uploading…", labSent:"Submitted ✓", labLast:"Last:", labPick:"Choose your lab group to see its submissions.", labNeedFile:"Choose a PDF or paste a link.", labTooBig:"The PDF is larger than 10 MB: compress it or submit a link.", labNotPdf:"PDF files only.", labBadLink:"The link must start with https://", labClosedMsg:"Closed: your teacher opens it in class.", labIsClosed:"This submission is closed.", labReplace:"Submitting again replaces the previous one.", labOld:"Submissions are not available yet: the teacher must update the Worker.", labAdmH:"Lab submissions", labAdmP:"Open or close each submission for every group.", labOpenB:"Open", labCloseB:"Close", labOpenList:"open", labNone:"none", labGrp:"Group", labAdmOld:"To manage the lab submissions, update the Worker: Cloudflare > quiz-results > Edit code > paste the current worker.js > Deploy.",
  thPts:"Points (0–5)", ptsUnit:"points", clsAll:"All", clsCount:"attempts", clsCount1:"attempt", thisDev:"This device", clsAvg:"average", qLeft:"Questions left", tLeft:"Time left",
  clsP:"Every attempt your students sent to the Worker (private quiz-results repository). The list shows class code, group, attempt code and score, without names; names appear only in the CSV.",
  clsDone:"attempts downloaded.", clsNone:"No attempts stored in the Worker yet.",
@@ -451,13 +451,10 @@ function drawKind(){
   box.querySelectorAll("button").forEach(b=>{ b.textContent=t(b.dataset.kind==="lab"?"kindLab":"kindTheory"); b.setAttribute("aria-pressed",String(b.dataset.kind===KIND)); });
 }
 function setKind(k){ // LAB: submissions only (no lectures or quizzes); Theoretical: the quiz tabs
-  const field=()=>KIND==="lab" ? $("#l-name") : $("#c-name"); // the name field of the visible page
-  const typed=field(), nm=typed?typed.value:""; // keep a name already typed
   KIND=k; try{ localStorage.setItem("qm_kind",k); }catch(e){}
   if(k==="lab" && TAB!=="res") TAB="lab";
   if(k==="theory" && TAB==="lab") TAB="quiz";
   drawKind(); renderTabs(); renderPage();
-  const inp=field(); if(inp && nm && !inp.value){ inp.value=nm; inp.dispatchEvent(new Event("input")); }
 }
 // Score as points on a 0–5 scale: correct / questions × 5 (14/20 → 3.5), two decimals at most
 const PTS_MAX = 5;
@@ -562,8 +559,6 @@ function renderQuiz(){
     renderAttempt(el);
   }
 }
-const fullName = v => /\S+\s+\S+/.test(v); // LAB: first name and surname
-
 /* ---------- LAB submissions (students): 5 per lab group, a PDF ≤ 10 MB or a link ---------- */
 const LAB_N = 5, LAB_MAX = 10*1024*1024;
 const LAB_PROF = "Maja Sutkowska"; // shown on the Submissions page
@@ -576,18 +571,14 @@ function labGroupSelect(id, sel){
     LAB_GROUPS[tr].map(([L,h])=>{ const v=labValue(tr,L,h); return `<option value="${esc(v)}"${v===sel?" selected":""}>${esc(labName(L,h))}</option>`; }).join("")}</optgroup>`).join("")}</select>`;
 }
 function renderLab(){
-  let nm="", grp=""; try{ nm=localStorage.getItem("qm_name")||""; grp=localStorage.getItem("qm_lab")||""; }catch(e){}
+  let grp=""; try{ grp=localStorage.getItem("qm_lab")||""; }catch(e){}
   $("#pg-lab").innerHTML=`<div class="pagehead"><h2>${esc(t("labH"))}</h2><p>${esc(t("labP"))}</p></div>
     <div class="controls">
       <span class="ctl"><label>${esc(t("labProf"))}</label><b id="l-prof">${esc(LAB_PROF)}</b></span>
-      <span class="ctl"><label>${esc(t("nameFull"))}</label><input type="text" id="l-name" placeholder="${esc(t("nameFullPh"))}" autocomplete="name"></span>
       <span class="ctl"><label>${esc(t("labGroup"))}</label>${labGroupSelect("l-grp", grp)}</span>
       <span class="hint" id="l-msg"></span>
     </div>
     <div id="l-slots"></div>`;
-  $("#l-name").value=nm;
-  $("#l-name").onchange=()=>{ const v=$("#l-name").value.trim().replace(/\s+/g," "); $("#l-msg").textContent = v && !fullName(v) ? t("needFull") : "";
-    if(fullName(v)) try{ localStorage.setItem("qm_name",v); }catch(e){} };
   $("#l-grp").onchange=()=>{ try{ localStorage.setItem("qm_lab",$("#l-grp").value); }catch(e){} LABST=null; loadLabStatus(); };
   if(LABST && LABST.grp===grp) drawLabSlots(); // last known state at once, then a fresh one (the teacher may have opened one)
   loadLabStatus();
@@ -626,9 +617,7 @@ function drawLabSlots(){
 const fileB64 = f => new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(String(r.result).split(",")[1]||""); r.onerror=()=>no(r.error); r.readAsDataURL(f); });
 async function labSend(k){
   const msg=$("#l-m"+k), btn=$("#l-s"+k), p=labParse($("#l-grp").value);
-  const nm=$("#l-name").value.trim().replace(/\s+/g," ");
   const f=$("#l-f"+k).files[0], link=$("#l-l"+k).value.trim();
-  if(!fullName(nm)){ msg.textContent=t("needFull"); $("#l-name").focus(); return; }
   if(!p){ msg.textContent=t("labPick"); return; }
   if(!f && !link){ msg.textContent=t("labNeedFile"); return; }
   if(f && !(f.type==="application/pdf" || /\.pdf$/i.test(f.name))){ msg.textContent=t("labNotPdf"); return; }
@@ -637,13 +626,12 @@ async function labSend(k){
   const url=submitURL(); if(!url){ msg.textContent=t("trNeedURL"); return; }
   btn.disabled=true; msg.textContent=t("labSending");
   try{
-    const q=new URLSearchParams({action:"labsubmit", track:p.track, g:p.g, k:String(k), name:nm});
+    const q=new URLSearchParams({action:"labsubmit", track:p.track, g:p.g, k:String(k)}); // a group submission, no submitter name
     let body="";
     if(f){ q.set("file", f.name); body=await fileB64(f); } else { q.set("kind","link"); q.set("link",link); }
     const r=await fetch(url+(url.includes("?")?"&":"?")+q, {method:"POST", headers:{"Content-Type":"text/plain;charset=UTF-8"}, body});
     const j=await r.json().catch(()=>({}));
     if(r.ok && j.ok){
-      try{ localStorage.setItem("qm_name",nm); }catch(e){}
       await loadLabStatus(); const m=$("#l-m"+k); if(m) m.textContent=t("labSent"); return;
     }
     if(j.error==="closed"){ await loadLabStatus(); ($("#l-m"+k)||$("#l-msg")).textContent=t("labIsClosed"); return; } // closed meanwhile: show the fresh state
@@ -1376,7 +1364,7 @@ function drawLabAdmin(){
     <tbody>${rows.map(r=>`<tr><td>${esc(t(r.tr==="architects"?"grpArch":"grpEng"))} · ${esc(labName(r.g,r.h))}</td>${ks.map(k=>{ const x=sub(r,k);
       if(!x) return `<td class="num">—</td>`;
       const what = x.kind==="pdf" ? `<a href="#" data-dl="${r.tr}|${r.g}|${k}">PDF</a>` : safeLink(x.link) ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(t("labLinkW"))}</a>` : "";
-      return `<td class="num" title="${esc(x.name||"")}">✓ ${esc(fmtLocal(x.date))}<br>${what}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+      return `<td class="num"${x.name?` title="${esc(x.name)}"`:""}>✓ ${esc(fmtLocal(x.date))}<br>${what}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div></details>`;
   out.querySelector("details").ontoggle=e=>{ LAB_ADM_OPEN=e.target.open; };
   out.querySelectorAll("[data-lk]").forEach(b=>b.onclick=()=>labToggle(+b.dataset.lk, b.dataset.lo==="1", b));
   out.querySelectorAll("[data-dl]").forEach(a=>a.onclick=e=>{ e.preventDefault(); const [tr,g,k]=a.dataset.dl.split("|"); labDownload(tr,g,+k,a); });

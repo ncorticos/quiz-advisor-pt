@@ -38,9 +38,9 @@ a `?type=lab` or `?type=theory` link sets it too.
 - **Theoretical** — the quiz tabs (Quiz, Projector, Bank, Results): name +
   group (Architects / Engineers), as before.
 - **LAB** — only **Submissions** and **Results**; no lectures or quizzes.
-  Students type their first name and surname and choose their lab group
-  (`Group X - house type`, Architects A–G, J; Engineers A–F). The group opens
-  with its **5 submissions**; each open one takes a PDF (up to 10 MB) or a
+  Students choose their lab group (`Group X - house type`, Architects A–G, J;
+  Engineers A–F); its members' names and its **5 submissions** appear (no name
+  to type: a submission belongs to the group); each open one takes a PDF (up to 10 MB) or a
   https link (Drive / OneDrive). While a submission is open, a new one replaces
   the previous one (the git history of quiz-results keeps every version).
 
