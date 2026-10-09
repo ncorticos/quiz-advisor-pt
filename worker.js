@@ -161,69 +161,94 @@ async function classResults(b, env) {
   return json({ ok: true, n: records.length, truncated, records });
 }
 
+// Settings as pasted in the dashboard, minus stray spaces/newlines (a newline in the token makes fetch throw)
+// and with REPO also accepted as a full github.com URL.
+function cleanEnv(env) {
+  const s = (v) => String(v || "").trim();
+  return {
+    AI: env.AI,
+    CLASS_CODE: s(env.CLASS_CODE),
+    GITHUB_TOKEN: s(env.GITHUB_TOKEN),
+    REPO: s(env.REPO).replace(/^https?:\/\/github\.com\//i, "").replace(/(\.git)?\/*$/, ""),
+    TEACHER_CODE: s(env.TEACHER_CODE),
+  };
+}
+
 export default {
   async fetch(req, env) {
-    // CORS preflight: a 204 must have no body (new Response("null", {status: 204}) throws)
-    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
-    if (req.method !== "POST") return json({ ok: false, error: "POST only" }, 405);
-
-    let b;
+    // Never let an exception escape: Cloudflare's error page has no CORS headers, so the quiz page
+    // would only see "Network error". Answer with the reason instead.
     try {
-      b = await req.json();
-    } catch {
-      return json({ ok: false, error: "bad json" }, 400);
+      return await handle(req, cleanEnv(env));
+    } catch (e) {
+      return json({ ok: false, error: "exception", detail: String((e && e.message) || e).slice(0, 200) }, 500);
     }
-    if (b && b.action === "translate") return translate(b, env);
-    if (b && b.action === "results") return classResults(b, env);
-    const CODES = String(env.CLASS_CODE || "").split(",").map(s => s.trim()).filter(Boolean);
-    if (!CODES.length || !CODES.includes(b.code)) {
-      return json({ ok: false, error: "code" }, 403);
-    }
-    const { id, name, klass, lesson, n, score, pct, secs, detail, date } = b;
-    if (
-      typeof id !== "string" || !ID_RE.test(id) ||
-      !Number.isInteger(n) || n < 1 || n > 200 ||
-      !Number.isInteger(score) || score < 0 || score > n ||
-      typeof pct !== "number" || pct < 0 || pct > 100 ||
-      (secs !== undefined && (!Number.isInteger(secs) || secs < 0))
-    ) {
-      return json({ ok: false, error: "shape" }, 400);
-    }
-
-    const record = {
-      id,
-      date: typeof date === "string" ? date.slice(0, 32) : new Date().toISOString(),
-      class: b.code,
-      name: String(name || "").slice(0, 60),
-      group: String(klass || "").slice(0, 60),
-      bank: String(lesson || "").slice(0, 80),
-      n, score, pct, secs: secs || 0,
-      detail: String(detail || "").slice(0, 2000),
-    };
-    const path = `results/${id}.json`;
-    const headers = {
-      Authorization: `Bearer ${env.GITHUB_TOKEN}`,
-      Accept: "application/vnd.github+json",
-      "Content-Type": "application/json",
-      "User-Agent": "quizzes-machine-worker",
-    };
-    // Fetch existing sha so re-sends of the same attempt update instead of failing.
-    let sha;
-    try {
-      const get = await fetch(`${GH}/repos/${env.REPO}/contents/${path}`, { headers });
-      if (get.status === 200) sha = (await get.json()).sha;
-    } catch { /* create path */ }
-
-    const put = await fetch(`${GH}/repos/${env.REPO}/contents/${path}`, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify({
-        message: `result ${id} — ${record.name} ${record.score}/${record.n}`,
-        content: b64encode(JSON.stringify(record, null, 2)),
-        ...(sha ? { sha } : {}),
-      }),
-    });
-    if (!put.ok) return json({ ok: false, error: "github" }, 502);
-    return json({ ok: true, id });
   },
 };
+
+async function handle(req, env) {
+  // CORS preflight: a 204 must have no body (new Response("null", {status: 204}) throws)
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
+  if (req.method !== "POST") return json({ ok: false, error: "POST only" }, 405);
+
+  let b;
+  try {
+    b = await req.json();
+  } catch {
+    return json({ ok: false, error: "bad json" }, 400);
+  }
+  if (b && b.action === "translate") return translate(b, env);
+  if (b && b.action === "results") return classResults(b, env);
+  const CODES = String(env.CLASS_CODE || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (!CODES.length || !CODES.includes(b.code)) {
+    return json({ ok: false, error: "code" }, 403);
+  }
+  const { id, name, klass, lesson, n, score, pct, secs, detail, date } = b;
+  if (
+    typeof id !== "string" || !ID_RE.test(id) ||
+    !Number.isInteger(n) || n < 1 || n > 200 ||
+    !Number.isInteger(score) || score < 0 || score > n ||
+    typeof pct !== "number" || pct < 0 || pct > 100 ||
+    (secs !== undefined && (!Number.isInteger(secs) || secs < 0))
+  ) {
+    return json({ ok: false, error: "shape" }, 400);
+  }
+
+  const record = {
+    id,
+    date: typeof date === "string" ? date.slice(0, 32) : new Date().toISOString(),
+    class: b.code,
+    name: String(name || "").slice(0, 60),
+    group: String(klass || "").slice(0, 60),
+    bank: String(lesson || "").slice(0, 80),
+    n, score, pct, secs: secs || 0,
+    detail: String(detail || "").slice(0, 2000),
+  };
+  if (!env.GITHUB_TOKEN || !env.REPO.includes("/")) return json({ ok: false, error: "setup" }, 500);
+  const path = `results/${id}.json`;
+  const headers = {
+    Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+    Accept: "application/vnd.github+json",
+    "Content-Type": "application/json",
+    "User-Agent": "quizzes-machine-worker",
+  };
+  // Fetch existing sha so re-sends of the same attempt update instead of failing.
+  let sha;
+  try {
+    const get = await fetch(`${GH}/repos/${env.REPO}/contents/${path}`, { headers });
+    if (get.status === 200) sha = (await get.json()).sha;
+  } catch { /* create path */ }
+
+  const put = await fetch(`${GH}/repos/${env.REPO}/contents/${path}`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify({
+      message: `result ${id} — ${record.name} ${record.score}/${record.n}`,
+      content: b64encode(JSON.stringify(record, null, 2)),
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  // GitHub's status tells the teacher what to fix: 401 token, 403 permission, 404 repo name/access
+  if (!put.ok) return json({ ok: false, error: "github", detail: String(put.status) }, 502);
+  return json({ ok: true, id });
+}
