@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.8.4 — 2026-10-09
+  Quizzes Machine 1.9.0 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -253,7 +253,9 @@ const DEF = (()=>{
     lesson: okL.includes(g.lesson)?g.lesson:"aula0",
     n: okN.includes(n)?n:20,
     mins: okM.includes(m)?m:15,
-    group: ["architects","engineers"].includes(g.group)?g.group:""
+    group: ["architects","engineers"].includes(g.group)?g.group:"",
+    mode: g.mode==="quiz"?"quiz":"proj",
+    code: String(g.code||"").slice(0,40)
   };
 })();
 function lockInfo(){ try{return JSON.parse(localStorage.getItem(LOCKKEY)||'{"f":0,"u":0}');}catch(e){return{f:0,u:0};} }
@@ -385,6 +387,7 @@ function renderQuiz(){
       const nm=$("#c-name").value.trim(), kg=$("#c-klass").value;
       if(!nm || !kg){ $("#c-warn").textContent=t("needId"); return; }
       try{ localStorage.setItem("qm_name",nm); localStorage.setItem("qm_group",kg); }catch(e){}
+      if(DEF.mode==="quiz"){ startQuiz(); return; }
       P.lesson=DEF.lesson; projReshuffle();
       TAB="proj"; renderTabs(); renderPage();
       window.scrollTo(0,0);
@@ -421,11 +424,16 @@ function startQuiz(){
   if(Q.left!==null){
     Q.timerId = setInterval(()=>{
       Q.left--;
-      const m = $("#q-timer"); if(m) m.textContent = fmtTime(Q.left);
+      qTick();
       if(Q.left<=0){ clearInterval(Q.timerId); finishQuiz(true); }
     },1000);
   }
   renderQuiz();
+}
+function qTick(){
+  const m=$("#q-timer"), bar=$("#q-tbar");
+  if(m){ m.textContent=fmtTime(Q.left); m.className="ptimer "+pBand(Q.left); }
+  if(bar && Q.mins){ bar.style.width=(Math.max(0,Q.left)/(Q.mins*60)*100).toFixed(1)+"%"; bar.className=pBand(Q.left); }
 }
 function renderAttempt(el){
   const answered = Object.keys(Q.ans).length;
@@ -436,6 +444,7 @@ function renderAttempt(el){
         <h3>${esc(t("qOf"))} ${Q.i+1} ${esc(t("of"))} ${Q.n}</h3>
         <p><span class="meta">${esc(LESSON[LANG][Q.lesson])} · ${esc(Q.id)}${Q.left!==null?` · ⏱ <span id="q-timer">${fmtTime(Q.left)}</span>`:""}</span></p></div></div>
       <div class="panel-body"><div class="progress"><i style="width:${(answered/Q.n*100).toFixed(1)}%"></i></div>
+      <div class="tbar"><i id="q-tbar" class="g" style="width:100%"></i></div>
       <p class="qtext">${esc(it.q)}</p><div class="opts">` +
       it.opts.map((o,k)=>`<button class="opt${Q.ans[Q.i]===k?" sel":""}" data-k="${k}"><span class="L">${LETTERS[k]}</span><span>${esc(o)}</span></button>`).join("") +
       `</div><div class="qnav">
@@ -448,7 +457,7 @@ function renderAttempt(el){
     body = `<div class="panel"><div class="panel-head"><div class="panel-title">
       <h3>${esc(LESSON[LANG][Q.lesson])}</h3>
       <p><span class="meta">${esc(Q.id)}${Q.left!==null?` · ⏱ <span id="q-timer">${fmtTime(Q.left)}</span>`:""}</span></p></div></div>
-      <div class="panel-body">` +
+      <div class="panel-body"><div class="tbar"><i id="q-tbar" class="g" style="width:100%"></i></div>` +
       Q.items.map((it,i)=>`<p class="qtext" style="font-size:14px;margin-top:${i?18:0}px">${i+1}. ${esc(it.q)}</p><div class="opts">`+
         it.opts.map((o,k)=>`<button class="opt${Q.ans[i]===k?" sel":""}" data-i="${i}" data-k="${k}"><span class="L">${LETTERS[k]}</span><span>${esc(o)}</span></button>`).join("")+
         `</div>`).join("") +
@@ -473,6 +482,14 @@ function finishQuiz(auto){
   Q.done=true; Q.secs=Math.round((Date.now()-Q.startT)/1000);
   Q.score=Q.items.filter((it,i)=>Q.ans[i]===it.correct).length;
   saveResult();
+  const EP=submitURL();
+  if(EP && DEF.code){
+    fetch(EP,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPayload(DEF.code))})
+      .then(r=>{ if(!r.ok) throw new Error("http "+r.status);
+        try{localStorage.setItem("qa_sent_"+Q.id,"1");}catch(e){}
+        if($("#r-send")) sentState(); })
+      .catch(()=>{});
+  }
   renderQuiz();
   if(auto) setTimeout(()=>alert(t("timeout")),50);
 }
@@ -516,20 +533,23 @@ function renderResult(el){
   if(!submitURL()){ $("#r-sendpanel").style.display="none"; }
   else{
     try{ if(localStorage.getItem("qa_sent_"+Q.id)) sentState(); }catch(e){}
+    if(DEF.code){ try{$("#r-code").value=DEF.code;}catch(e){} }
     $("#r-send").onclick=sendResult;
   }
 }
 function sentState(){ $("#r-send").disabled=true; $("#r-send").textContent=t("sent"); $("#r-sendmsg").textContent=Q.id; }
+function resultPayload(code){
+  return {code, id:Q.id, name:Q.name, klass:Q.klass, lesson:LESSON[LANG][Q.lesson],
+    n:Q.n, score:Q.score, pct:+(Q.score/Q.n*100).toFixed(1), secs:Q.secs,
+    date:new Date().toISOString(),
+    detail:Q.items.map((it,i)=>`${it.src+1}:${Q.ans[i]===undefined?"-":LETTERS[Q.ans[i]]}${Q.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
+}
 async function sendResult(){
   const btn=$("#r-send"), msg=$("#r-sendmsg"), code=$("#r-code").value.trim();
   if(!code){ msg.textContent=t("needCode"); return; }
   btn.disabled=true; btn.textContent=t("sending"); msg.textContent="";
-  const payload={code, id:Q.id, name:Q.name, klass:Q.klass, lesson:LESSON[LANG][Q.lesson],
-    n:Q.n, score:Q.score, pct:+(Q.score/Q.n*100).toFixed(1), secs:Q.secs,
-    date:new Date().toISOString(),
-    detail:Q.items.map((it,i)=>`${it.src+1}:${Q.ans[i]===undefined?"-":LETTERS[Q.ans[i]]}${Q.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
   try{
-    const r=await fetch(submitURL(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    const r=await fetch(submitURL(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPayload(code))});
     if(r.status===403){ msg.textContent=t("badCode"); btn.disabled=false; btn.textContent=t("send"); return; }
     if(!r.ok) throw new Error("http "+r.status);
     try{localStorage.setItem("qa_sent_"+Q.id,"1");}catch(e){}
