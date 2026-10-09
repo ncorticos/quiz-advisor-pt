@@ -30,8 +30,9 @@
 //     quiz-machine repo root (GitHub > Add file > Upload files).
 //
 // Class results as CSV (teacher only; needs steps 1–3 and the TEACHER_CODE of step 6):
-//  8. In the quiz page: 04 Results > unlock with 3016 > Worker teacher code >
-//     "Class results (CSV)" downloads every attempt stored in quiz-results.
+//  8. In the quiz page: 04 Results > unlock with 3016 > type the Worker teacher code
+//     and press Enter: the list of attempts (with averages by lecture and by group)
+//     appears; "Download CSV" downloads every attempt stored in quiz-results.
 
 const GH = "https://api.github.com";
 const RES_FALLBACK_MAX = 40; // per-file reads when GraphQL is unavailable (Workers free plan: 50 subrequests)
@@ -118,7 +119,8 @@ const parseRecord = (text) => { try { return pickRecord(JSON.parse(text)); } cat
 
 // Every attempt in quiz-results/results/: one GraphQL call for the whole folder, REST file by file as fallback.
 async function classResults(b, env) {
-  if (!env.TEACHER_CODE || b.code !== env.TEACHER_CODE) return json({ ok: false, error: "code" }, 403);
+  if (!env.TEACHER_CODE) return json({ ok: false, error: "code", detail: "TEACHER_CODE not set" }, 403);
+  if (b.code !== env.TEACHER_CODE) return json({ ok: false, error: "code" }, 403);
   if (!env.GITHUB_TOKEN || !env.REPO || !String(env.REPO).includes("/")) return json({ ok: false, error: "setup" }, 500);
   const [owner, name] = String(env.REPO).split("/");
   const headers = {
