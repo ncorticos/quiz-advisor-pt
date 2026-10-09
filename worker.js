@@ -41,16 +41,15 @@ Keep proper names, acronyms, codes and references unchanged (IPCC, UNEP, EN 1283
 Translate the meaning exactly. Do not add, remove, merge or reorder questions or options, and do not make the correct option easier to spot (keep options parallel in length and style).
 Reply with JSON only, no comments: {"items":[{"q":"...","opts":["...","...","...","..."]}]} with the same number of items, in the same order, each with exactly 4 options.`;
 
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Access-Control-Max-Age": "86400",
+};
+
 function json(obj, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+  return new Response(JSON.stringify(obj), { status, headers: { "Content-Type": "application/json", ...CORS } });
 }
 
 function b64encode(str) {
@@ -164,7 +163,8 @@ async function classResults(b, env) {
 
 export default {
   async fetch(req, env) {
-    if (req.method === "OPTIONS") return json(null, 204);
+    // CORS preflight: a 204 must have no body (new Response("null", {status: 204}) throws)
+    if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
     if (req.method !== "POST") return json({ ok: false, error: "POST only" }, 405);
 
     let b;
