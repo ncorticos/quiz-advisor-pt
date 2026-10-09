@@ -20,7 +20,10 @@ Same visual language as [Architecture Advisor](https://ncorticos.github.io/archi
   Opened directly, the tab shows one random question at a time for the room,
   alongside the lesson PPTX, with no repeats until the bank is exhausted.
 - **03 Banco / Bank** — searchable teacher view of all questions + answers.
-- **04 Resultados / Results** — local history with full CSV export.
+- **04 Resultados / Results** — local history of this device. Export, clear and
+  the submit link are unlocked with the teacher code (3016). Once unlocked,
+  **Class results (CSV)** downloads every attempt the students sent to the
+  Worker, with a class-code column (needs the Worker's `TEACHER_CODE`).
 
 Question bank v1.0.0: 348 questions extracted from lessons L.01–L.03 —
 Aula 1–3 (46/54/74, PT) + Lecture 1–3 (46/54/74, EN).
