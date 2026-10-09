@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.9.2 — 2026-10-09
+  Quizzes Machine 1.9.3 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -626,7 +626,7 @@ function renderProj(){
     </div>
     <div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div>
     ${P.over?`<div class="overbanner">${esc(t("overT"))} — ${esc(t("overP"))}</div>`:""}
-    <div class="panel"><div class="panel-body nosel" id="p-card"></div></div>
+    <div class="panel"><div class="panel-body${UNLOCKED?"":" nosel"}" id="p-card"></div></div>
     <div class="reqpanel" id="p-req" style="display:none">
       <div class="qnav" style="margin-top:0">
         <a class="btn solid" id="p-mail" href="#">${esc(t("reqAsk"))}</a>
