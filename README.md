@@ -47,12 +47,14 @@ a `?type=lab` or `?type=theory` link sets it too.
 Teacher, 04 Results > unlock (3016) > Worker teacher code:
 
 - **Lab submissions** — one row per lab group, one column per submission:
-  open/close buttons (for every group at once), ✓ date, PDF download or link;
-  hover ✓ to see who submitted.
-- **Lab groups** — student names per lab group from `roster.json` in the
-  private quiz-results repo (never in the page code). Students see the names
-  of the group they choose on the Submissions page ("Group members"), fetched
-  from the Worker at run time.
+  open/close buttons (for every group at once), ✓ date, PDF download or link.
+- **Lab groups** — every lab group with its members.
+
+The members (first name and surname only) are in `LAB_GROUPS` in `index.html`,
+so they show as soon as a group is chosen, even without the Worker. They are
+**public**: anyone who opens the page or this repository can read them (the
+page asks search engines not to index it). Edit that list to move or add a
+student. `roster.json` in quiz-results is no longer used.
 
 Storage (private quiz-results repo): `lab/index.json` (open submissions and
 what each group handed in) and `lab/files/<track>-<letter>-s<n>.pdf`. The

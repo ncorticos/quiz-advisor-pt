@@ -2,9 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.17.3 — 2026-10-09 20:04 (Lisbon)
+  Quizzes Machine 1.17.4 — 2026-10-09 20:10 (Lisbon)
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -193,7 +194,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
   <section class="page" id="pg-lab"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.17.3 · 2026-10-09 20:04</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.17.4 · 2026-10-09 20:10</span></footer>
 </main>
 <script>
 "use strict";
@@ -229,7 +230,7 @@ pt:{
  submitLink:"Ligação de envio", submitSet:"Guardar", submitSaved:"Ligação guardada.",
  submitP:"Cole aqui a ligação de envio dada pelo docente (uma vez por dispositivo).",
  grpArch:"Arquitetos", grpEng:"Engenheiros", kindTheory:"Teórica", kindLab:"LAB", kindAria:"Tipo de sessão", labGroup:"Grupo de laboratório",
- rosterH:"Grupos de laboratório", rosterStud:"alunos", rosterP:"Nomes do roster.json no repositório privado quiz-results (nunca no código da página). Para editar: GitHub > quiz-results > roster.json.", rosterNone:"Ainda não há roster.json no repositório quiz-results.", rosterBad:"O roster.json do quiz-results não é JSON válido.", rosterOld:"Para ver os grupos de laboratório, atualize o Worker: Cloudflare > quiz-results > Edit code > colar o worker.js atual > Deploy.",
+ rosterH:"Grupos de laboratório", rosterStud:"alunos", rosterP:"Os nomes estão no código da página (LAB_GROUPS em index.html), que é público; para mudar um grupo, edite essa lista.",
  lockB:"Definições", codeL:"Código", unlockedMsg:"Desbloqueado — volte a bloquear antes da aula.",
  wrongCode:"Código incorreto.", triesLeft:"tentativas restantes.",
  lockedMsg:"Bloqueado após códigos errados — tente dentro de", minShort:"min.",
@@ -299,7 +300,7 @@ en:{
  submitLink:"Submit link", submitSet:"Save", submitSaved:"Link saved.",
  submitP:"Paste here the submit link given by your teacher (once per device).",
  grpArch:"Architects", grpEng:"Engineers", kindTheory:"Theoretical", kindLab:"LAB", kindAria:"Session type", labGroup:"Lab group",
- rosterH:"Lab groups", rosterStud:"students", rosterP:"Names from roster.json in the private quiz-results repository (never in the page code). To edit: GitHub > quiz-results > roster.json.", rosterNone:"No roster.json in the quiz-results repository yet.", rosterBad:"roster.json in quiz-results is not valid JSON.", rosterOld:"To see the lab groups, update the Worker: Cloudflare > quiz-results > Edit code > paste the current worker.js > Deploy.",
+ rosterH:"Lab groups", rosterStud:"students", rosterP:"Names are in the page code (LAB_GROUPS in index.html), which is public; to change a group, edit that list.",
  lockB:"Settings", codeL:"Code", unlockedMsg:"Unlocked — re-lock before class.",
  wrongCode:"Wrong code.", triesLeft:"attempts left.",
  lockedMsg:"Locked after wrong codes — retry in", minShort:"min.",
@@ -433,10 +434,27 @@ function shuffle(a){
 function sampleIdx(n,k){ return shuffle([...Array(n).keys()]).slice(0,k); }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function fmtTime(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); }
-/* LAB sessions: groups per track, "Group X - house type". Names are NOT here (public page): see roster.json in quiz-results. */
+/* LAB sessions: groups per track, "Group X - house type", with the members' first name and surname.
+   These names are public (page code); to move or add a student, edit this list. */
 const LAB_GROUPS = {
-  architects: [["A","Warmińska"],["B","Podhalańska"],["C","Lubelska"],["D","Mazurska"],["E","Dolnośląska"],["F","Łowicka"],["G","Lubuska"],["J","Kaszubska"]],
-  engineers:  [["A","Lubuska"],["B","Podlaska"],["C","Kurpiowska"],["D","Lubelska"],["E","Krakowska"],["F","Kielecka"]]
+  architects: [
+    ["A","Warmińska",["Stepan Tutetskyi", "Walentyn Tonyk", "Yuliia Oliinyk"]],
+    ["B","Podhalańska",["Paulina Kwiecińska", "Marta Kuklewska"]],
+    ["C","Lubelska",["Katarzyna Grochowska", "Amelia Wojtyś", "Magdalena Kania"]],
+    ["D","Mazurska",["Alina Grabowska", "Sandra Owczarek"]],
+    ["E","Dolnośląska",["Zofia Awin", "Marharyta Martyrosian", "Yustyna Sychak"]],
+    ["F","Łowicka",["Marta Mońko", "Sofiia Lotarova", "Darya Papko"]],
+    ["G","Lubuska",["Yelyzaveta Meneghetti", "Paula Swędrak"]],
+    ["J","Kaszubska",["Jiachang Zhang"]]
+  ],
+  engineers: [
+    ["A","Lubuska",["Jan Zyzynski", "Oliwia Wiącek", "Anna Żuk"]],
+    ["B","Podlaska",["Katarzyna Głowala", "Karolina Ptaszek", "Diana Zientara"]],
+    ["C","Kurpiowska",["Jakub Grądziel", "Oskar Sieraków", "Jakub Tucholski"]],
+    ["D","Lubelska",["Bartosz Jesionkowski", "Kacper Kędziorek", "Izabela Skóra"]],
+    ["E","Krakowska",["Aleksander Bokacki", "Kinga Piotrowska", "Agnieszka Dębska"]],
+    ["F","Kielecka",["Kacper Matczuk", "Gabriela Księżopolska", "Mikołaj Król"]]
+  ]
 };
 const TRACK_EN = {architects:"Architects", engineers:"Engineers"}; // stored values stay in English whatever the page language
 const labName = (letter, house) => `Group ${letter}` + (house ? ` - ${house}` : "");
@@ -562,7 +580,7 @@ function renderQuiz(){
 /* ---------- LAB submissions (students): 5 per lab group, a PDF ≤ 10 MB or a link ---------- */
 const LAB_N = 5, LAB_MAX = 10*1024*1024;
 const LAB_PROF = "Maja Sutkowska"; // shown on the Submissions page
-let LABST = null; // {grp, open:[k], subs:{k:{date,kind,file,size,link}}, members:[names]} of the chosen group
+let LABST = null; // {grp, open:[k], subs:{k:{date,kind,file,size,link}}} of the chosen group
 const labParse = v => { const m=/^(Architects|Engineers) · Group ([A-Z])\b/.exec(v||""); return m ? {track:m[1].toLowerCase(), g:m[2]} : null; };
 const fmtMB = b => (b>=1048576 ? (b/1048576).toFixed(1)+" MB" : Math.max(1,Math.round((b||0)/1024))+" kB");
 const safeLink = u => /^https:\/\/[^\s"<>]+$/i.test(u||"");
@@ -578,10 +596,18 @@ function renderLab(){
       <span class="ctl"><label>${esc(t("labGroup"))}</label>${labGroupSelect("l-grp", grp)}</span>
       <span class="hint" id="l-msg"></span>
     </div>
+    <p class="labmem" id="l-members" hidden></p>
     <div id="l-slots"></div>`;
-  $("#l-grp").onchange=()=>{ try{ localStorage.setItem("qm_lab",$("#l-grp").value); }catch(e){} LABST=null; loadLabStatus(); };
+  $("#l-grp").onchange=()=>{ try{ localStorage.setItem("qm_lab",$("#l-grp").value); }catch(e){} LABST=null; drawMembers(); loadLabStatus(); };
+  drawMembers();
   if(LABST && LABST.grp===grp) drawLabSlots(); // last known state at once, then a fresh one (the teacher may have opened one)
   loadLabStatus();
+}
+function drawMembers(){ // the chosen group's students, straight from LAB_GROUPS
+  const el=$("#l-members"), p=labParse($("#l-grp").value); if(!el) return;
+  const g=p && (LAB_GROUPS[p.track]||[]).find(x=>x[0]===p.g), names=(g && g[2]) || [];
+  el.hidden=!names.length;
+  el.innerHTML=names.length ? `<span class="k">${esc(t("labMembers"))}</span>${names.map(esc).join(" · ")}` : "";
 }
 async function loadLabStatus(){ // "open the group": its 5 submissions, open/closed and what was handed in
   const out=$("#l-slots"), msg=$("#l-msg"), grp=$("#l-grp").value, p=labParse(grp);
@@ -593,13 +619,12 @@ async function loadLabStatus(){ // "open the group": its 5 submissions, open/clo
     const j=await r.json().catch(()=>({}));
     if($("#l-grp").value!==grp) return; // another group was chosen meanwhile
     if(!r.ok || !j.ok){ out.innerHTML=""; msg.textContent = r.status===403 ? t("labOld") : `${t("clsFail")} (${r.status}${j.error?" "+j.error:""})`; return; }
-    msg.textContent=""; LABST={grp, open:j.open||[], subs:j.subs||{}, members:Array.isArray(j.members)?j.members:[]}; drawLabSlots();
+    msg.textContent=""; LABST={grp, open:j.open||[], subs:j.subs||{}}; drawLabSlots();
   }catch(e){ msg.textContent=await workerDiag(url); }
 }
 function drawLabSlots(){
   const out=$("#l-slots"); if(!out || !LABST) return;
-  const mem=LABST.members.length ? `<p class="labmem"><span class="k">${esc(t("labMembers"))}</span>${LABST.members.map(esc).join(" · ")}</p>` : "";
-  out.innerHTML=mem+[...Array(LAB_N).keys()].map(i=>{
+  out.innerHTML=[...Array(LAB_N).keys()].map(i=>{
     const k=i+1, open=LABST.open.includes(k), x=LABST.subs[k];
     const last = !x ? "" : `${esc(t("labLast"))} ${esc(fmtLocal(x.date))} · ${x.kind==="pdf" ? `${esc(x.file||"PDF")} (${fmtMB(x.size)})`
       : safeLink(x.link) ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(t("labLinkW"))}</a>` : esc(t("labLinkW"))}`;
@@ -1294,7 +1319,7 @@ async function fetchClass(){ // records, or null with the reason shown
     if(!r.ok || !j.ok || !Array.isArray(j.records)){ msg.textContent=`${t("clsFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`; return null; }
     const isNew=tcodeLoad()!==TRCODE; tcodeKeep(true);
     msg.textContent=(j.records.length?`${j.records.length} ${t(j.records.length===1?"clsCount1":"clsCount")}`:t("clsNone"))+(j.truncated?` ${t("clsTrunc")}`:"")+(isNew?` · ${t("tcKept")}`:"");
-    CLS={records:j.records, filter:CLS?CLS.filter:"", roster:("roster" in j)?j.roster:undefined, rosterError:j.rosterError||"", lab:("lab" in j)?(j.lab||{open:[],subs:{}}):undefined};
+    CLS={records:j.records, filter:CLS?CLS.filter:"", lab:("lab" in j)?(j.lab||{open:[],subs:{}}):undefined};
     return j.records;
   }catch(e){ msg.textContent=await workerDiag(url); return null; }
 }
@@ -1331,18 +1356,12 @@ async function classCSV(){ // always a fresh list; also refreshes the table on s
   if($("#e-cls")) $("#e-cls").disabled=false;
 }
 let ROSTER_OPEN = false;
-function drawRoster(){ // lab groups with names: shown only once the Worker accepted the teacher code
+function drawRoster(){ // lab groups with their members (LAB_GROUPS), next to the lab submissions
   const out=$("#e-roster"); if(!out) return;
   if(!CLS){ out.innerHTML=""; return; }
-  if(CLS.roster===undefined){ out.innerHTML=`<p class="hint" style="margin:10px 0 0">${esc(t("rosterOld"))}</p>`; return; }
-  if(!CLS.roster){ out.innerHTML=`<p class="hint" style="margin:10px 0 0">${esc(t(CLS.rosterError?"rosterBad":"rosterNone"))}</p>`; return; }
-  const R=CLS.roster, house=(tr,L)=>((LAB_GROUPS[tr]||[]).find(g=>g[0]===L)||[])[1]||"";
   let total=0;
-  const col=tr=>{
-    const groups=Object.keys(R[tr]||{}).sort();
-    return `<div><h4>${esc(t(tr==="architects"?"grpArch":"grpEng"))}</h4>${groups.map(L=>{ const names=R[tr][L]||[]; total+=names.length;
-      return `<div><b>${esc(labName(L,house(tr,L)))}</b><ul>${names.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></div>`; }).join("")}</div>`;
-  };
+  const col=tr=>`<div><h4>${esc(t(tr==="architects"?"grpArch":"grpEng"))}</h4>${LAB_GROUPS[tr].map(([L,h,names=[]])=>{ total+=names.length;
+      return `<div><b>${esc(labName(L,h))}</b><ul>${names.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></div>`; }).join("")}</div>`;
   const cols=col("architects")+col("engineers");
   out.innerHTML=`<details class="roster" style="margin:12px 0 0"${ROSTER_OPEN?" open":""}><summary>${esc(t("rosterH"))} · ${total} ${esc(t("rosterStud"))}</summary>
     <p class="hint" style="margin:4px 0 0">${esc(t("rosterP"))}</p><div class="grid g2">${cols}</div></details>`;
