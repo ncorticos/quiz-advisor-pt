@@ -36,6 +36,9 @@
 //  9. LAB sessions: names per lab group go in roster.json at the root of the private
 //     quiz-results repo, {"architects":{"A":["First Surname"]},"engineers":{...}}.
 //     They are shown under "Lab groups" with the class results, never in the page code.
+// 10. LAB submissions (5 per lab group, PDF up to 10 MB or a link): nothing to set up.
+//     Files go to lab/files/, the list and the open/closed state to lab/index.json in
+//     quiz-results. Open or close each submission in 04 Results > Lab submissions.
 
 const GH = "https://api.github.com";
 const RES_FALLBACK_MAX = 40; // per-file reads when GraphQL is unavailable (Workers free plan: 50 subrequests)
@@ -65,6 +68,18 @@ function b64encode(str) {
 }
 
 const ID_RE = /^[A-Za-z0-9-]{1,40}$/;
+
+function b64decode(b64) { // base64 -> UTF-8 text
+  const bin = atob(String(b64 || "").replace(/\s/g, ""));
+  return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0)));
+}
+
+const ghHeaders = (env, accept = "application/vnd.github+json") => ({
+  Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+  Accept: accept,
+  "Content-Type": "application/json",
+  "User-Agent": "quizzes-machine-worker",
+});
 
 const isItem = (it, qMax, oMax) =>
   it && typeof it.q === "string" && it.q.trim() && it.q.length <= qMax &&
@@ -189,7 +204,9 @@ async function classResults(b, env) {
     } catch { rosterText = null; }
   }
   records = records.filter(Boolean).sort((a, b2) => a.date.localeCompare(b2.date));
-  return json({ ok: true, n: records.length, truncated, records, ...parseRoster(rosterText) });
+  let lab = null;
+  try { lab = (await labIndex(env)).data; } catch { /* list stays without lab submissions */ }
+  return json({ ok: true, n: records.length, truncated, records, ...parseRoster(rosterText), lab });
 }
 
 // Settings as pasted in the dashboard, minus stray spaces/newlines (a newline in the token makes fetch throw)
@@ -222,6 +239,10 @@ async function handle(req, env) {
   if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: CORS });
   if (req.method !== "POST") return json({ ok: false, error: "POST only" }, 405);
 
+  // LAB upload: metadata in the query string, the PDF (base64) as the raw body, streamed to GitHub
+  const url = new URL(req.url);
+  if (url.searchParams.get("action") === "labsubmit") return labSubmit(req, url, env);
+
   let b;
   try {
     b = await req.json();
@@ -230,6 +251,12 @@ async function handle(req, env) {
   }
   if (b && b.action === "translate") return translate(b, env);
   if (b && b.action === "results") return classResults(b, env);
+  if (b && b.action === "labstatus") return labStatus(b, env);
+  if (b && (b.action === "labopen" || b.action === "labfile")) {
+    if (!env.TEACHER_CODE) return json({ ok: false, error: "code", detail: "TEACHER_CODE not set" }, 403);
+    if (b.code !== env.TEACHER_CODE) return json({ ok: false, error: "code" }, 403);
+    return b.action === "labopen" ? labOpen(b, env) : labFile(b, env);
+  }
   const CODES = String(env.CLASS_CODE || "").split(",").map(s => s.trim()).filter(Boolean);
   if (!CODES.length || !CODES.includes(b.code)) {
     return json({ ok: false, error: "code" }, 403);
@@ -282,4 +309,154 @@ async function handle(req, env) {
   // GitHub's status tells the teacher what to fix: 401 token, 403 permission, 404 repo name/access
   if (!put.ok) return json({ ok: false, error: "github", detail: String(put.status) }, 502);
   return json({ ok: true, id });
+}
+
+// ---------- LAB submissions: 5 per lab group, a PDF (≤ 10 MB) or a link ----------
+// lab/index.json {"open":[1,3], "subs":{"engineers-C-s2":{name,date,kind:"pdf"|"link",file,size,link}}}
+// lab/files/engineers-C-s2.pdf  (replaced on a new submission; git history keeps the earlier ones)
+const LAB_N = 5;
+const LAB_MAX = 10 * 1024 * 1024; // PDF bytes
+const LAB_MAX_B64 = Math.ceil(LAB_MAX / 3) * 4;
+const TRACKS = ["architects", "engineers"];
+const labSlot = (track, g, k) => {
+  k = Number(k);
+  return TRACKS.includes(track) && /^[A-Z]$/.test(String(g)) && Number.isInteger(k) && k >= 1 && k <= LAB_N
+    ? { track, g, k, key: `${track}-${g}-s${k}` } : null;
+};
+const labReady = (env) => env.GITHUB_TOKEN && String(env.REPO).includes("/");
+
+async function labIndex(env) { // {data, sha}; no file yet = nothing open, nothing submitted
+  const r = await fetch(`${GH}/repos/${env.REPO}/contents/lab/index.json`, { headers: ghHeaders(env) });
+  if (r.status === 404) return { data: { open: [], subs: {} }, sha: undefined };
+  if (!r.ok) throw new Error(`github ${r.status}`);
+  const j = await r.json();
+  let d = {};
+  try { d = JSON.parse(b64decode(j.content)); } catch { /* start clean */ }
+  const open = (Array.isArray(d.open) ? d.open : []).map(Number).filter((k) => Number.isInteger(k) && k >= 1 && k <= LAB_N);
+  return { data: { open: [...new Set(open)].sort(), subs: d.subs && typeof d.subs === "object" ? d.subs : {} }, sha: j.sha };
+}
+
+// Read-modify-write of the index; retried when another submission changed it in between (409/422).
+async function labIndexUpdate(env, message, mutate) {
+  for (let i = 0; i < 4; i++) {
+    const { data, sha } = await labIndex(env);
+    mutate(data);
+    const put = await fetch(`${GH}/repos/${env.REPO}/contents/lab/index.json`, {
+      method: "PUT",
+      headers: ghHeaders(env),
+      body: JSON.stringify({ message, content: b64encode(JSON.stringify(data, null, 1)), ...(sha ? { sha } : {}) }),
+    });
+    if (put.ok) return data;
+    if (put.status !== 409 && put.status !== 422) throw new Error(`github ${put.status}`);
+  }
+  throw new Error("github busy");
+}
+
+async function labSubmit(req, url, env) {
+  if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
+  const q = (k) => String(url.searchParams.get(k) || "").trim();
+  const slot = labSlot(q("track"), q("g"), q("k"));
+  const name = q("name").replace(/\s+/g, " ").slice(0, 80);
+  if (!slot || !/\S+\s+\S+/.test(name)) return json({ ok: false, error: "shape" }, 400);
+  const isLink = q("kind") === "link";
+  const link = q("link").slice(0, 500);
+  if (isLink && !/^https:\/\/[^\s"<>]+$/i.test(link)) return json({ ok: false, error: "link" }, 400);
+  const len = Number(req.headers.get("content-length") || 0);
+  if (!isLink && !(len > 0)) return json({ ok: false, error: "empty" }, 400);
+  if (!isLink && len > LAB_MAX_B64) return json({ ok: false, error: "too large" }, 413);
+
+  const { data } = await labIndex(env);
+  if (!data.open.includes(slot.k)) return json({ ok: false, error: "closed" }, 403);
+  const date = new Date().toISOString();
+  let entry;
+  if (isLink) {
+    entry = { name, date, kind: "link", link };
+  } else {
+    const file = (q("file").replace(/[^\w .()-]+/g, "_").slice(0, 100) || "submission.pdf");
+    const path = `lab/files/${slot.key}.pdf`;
+    let sha; // replacing needs the current blob sha: the folder listing has it whatever the file size
+    const dir = await fetch(`${GH}/repos/${env.REPO}/contents/lab/files`, { headers: ghHeaders(env) });
+    if (dir.ok) sha = ((await dir.json()).find((f) => f.path === path) || {}).sha;
+    const put = await putBase64Stream(env, path, `lab ${slot.key} — ${name}`, req, len, sha);
+    if (put.error) return json({ ok: false, error: put.error }, 400);
+    if (!put.res.ok) return json({ ok: false, error: "github", detail: String(put.res.status) }, 502);
+    entry = { name, date, kind: "pdf", file, size: Math.floor(len * 3 / 4) };
+  }
+  await labIndexUpdate(env, `lab ${slot.key} ${entry.kind} — ${name}`, (d) => { d.subs[slot.key] = entry; });
+  return json({ ok: true, key: slot.key, date, kind: entry.kind });
+}
+
+// The body (base64 text) goes to GitHub as it arrives: wrapped in the JSON that the contents API
+// expects, without being buffered or parsed here (Workers free plan: 10 ms CPU per request).
+async function putBase64Stream(env, path, message, req, len, sha) {
+  const enc = new TextEncoder();
+  const head = enc.encode(`{"message":${JSON.stringify(message)},${sha ? `"sha":"${sha}",` : ""}"content":"`);
+  const tail = enc.encode(`"}`);
+  const reader = req.body.getReader();
+  const first = await reader.read(); // "%PDF-" in base64 starts with "JVBER"
+  if (first.done || !new TextDecoder().decode(first.value.slice(0, 5)).startsWith("JVBER")) {
+    reader.cancel().catch(() => {});
+    return { error: "not pdf" };
+  }
+  const target = `${GH}/repos/${env.REPO}/contents/${path}`;
+  if (typeof FixedLengthStream === "function") { // Cloudflare: streamed with a known Content-Length
+    const { readable, writable } = new FixedLengthStream(head.length + len + tail.length);
+    const pump = (async () => {
+      const w = writable.getWriter();
+      await w.write(head);
+      await w.write(first.value);
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        await w.write(value);
+      }
+      await w.write(tail);
+      await w.close();
+    })();
+    const res = await fetch(target, { method: "PUT", headers: ghHeaders(env), body: readable });
+    await pump.catch(() => {});
+    return { res };
+  }
+  const parts = [head, first.value]; // other runtimes (tests): buffer the chunks
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    parts.push(value);
+  }
+  parts.push(tail);
+  return { res: await fetch(target, { method: "PUT", headers: ghHeaders(env), body: new Blob(parts) }) };
+}
+
+// Students: open submissions and what their group handed in (no names).
+async function labStatus(b, env) {
+  if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
+  const { data } = await labIndex(env);
+  const subs = {};
+  for (let k = 1; k <= LAB_N; k++) {
+    const slot = labSlot(b.track, b.g, k);
+    const e = slot && data.subs[slot.key];
+    if (e) subs[k] = { date: e.date, kind: e.kind, file: e.file, size: e.size, link: e.link };
+  }
+  return json({ ok: true, open: data.open, subs });
+}
+
+// Teacher: open or close one submission for every group.
+async function labOpen(b, env) {
+  if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
+  const k = Number(b.k);
+  if (!Number.isInteger(k) || k < 1 || k > LAB_N) return json({ ok: false, error: "shape" }, 400);
+  const lab = await labIndexUpdate(env, `lab submission ${k} ${b.open ? "opened" : "closed"}`, (d) => {
+    d.open = b.open ? [...new Set([...d.open, k])].sort() : d.open.filter((x) => x !== k);
+  });
+  return json({ ok: true, lab });
+}
+
+// Teacher: one submitted PDF, streamed back.
+async function labFile(b, env) {
+  if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
+  const slot = labSlot(b.track, b.g, b.k);
+  if (!slot) return json({ ok: false, error: "shape" }, 400);
+  const r = await fetch(`${GH}/repos/${env.REPO}/contents/lab/files/${slot.key}.pdf`, { headers: ghHeaders(env, "application/vnd.github.raw+json") });
+  if (!r.ok) return json({ ok: false, error: r.status === 404 ? "no file" : "github", detail: String(r.status) }, r.status === 404 ? 404 : 502);
+  return new Response(r.body, { status: 200, headers: { ...CORS, "Content-Type": "application/pdf" } });
 }

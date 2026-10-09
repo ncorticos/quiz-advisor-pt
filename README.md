@@ -35,16 +35,27 @@ Aula 1–3 (46/54/74, PT) + Lecture 1–3 (46/54/74, EN).
 The header switch (same style as EN | PT) sets the session type on each device;
 a `?type=lab` or `?type=theory` link sets it too.
 
-- **Theoretical** — name + group (Architects / Engineers), as before.
-- **LAB** — first name and surname + lab group, listed per track as
-  `Group X - house type` (Architects A–G, J; Engineers A–F). The attempt is
-  stored with the group as `Engineers · Group C - Kurpiowska`, so the class
-  results average it per lab group.
+- **Theoretical** — the quiz tabs (Quiz, Projector, Bank, Results): name +
+  group (Architects / Engineers), as before.
+- **LAB** — only **Submissions** and **Results**; no lectures or quizzes.
+  Students type their first name and surname and choose their lab group
+  (`Group X - house type`, Architects A–G, J; Engineers A–F). The group opens
+  with its **5 submissions**; each open one takes a PDF (up to 10 MB) or a
+  https link (Drive / OneDrive). While a submission is open, a new one replaces
+  the previous one (the git history of quiz-results keeps every version).
 
-The page holds only the group letters and house types (`LAB_GROUPS` in
-`index.html`). Student names per lab group are in `roster.json` in the private
-quiz-results repo and appear under **Lab groups** in 04 Results only after the
-teacher code (3016) and the Worker's `TEACHER_CODE` (step 9 of `worker.js`).
+Teacher, 04 Results > unlock (3016) > Worker teacher code:
+
+- **Lab submissions** — one row per lab group, one column per submission:
+  open/close buttons (for every group at once), ✓ date, PDF download or link;
+  hover ✓ to see who submitted.
+- **Lab groups** — student names per lab group from `roster.json` in the
+  private quiz-results repo (never in the page code).
+
+Storage (private quiz-results repo): `lab/index.json` (open submissions and
+what each group handed in) and `lab/files/<track>-<letter>-s<n>.pdf`. The
+upload is streamed through the Worker to GitHub (Workers free plan: 10 ms CPU
+per request), hence the 10 MB limit; larger work goes as a link.
 
 ## Points (0–5)
 

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.16.1 — 2026-10-09 19:22 (Lisbon)
+  Quizzes Machine 1.17.0 — 2026-10-09 19:42 (Lisbon)
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -90,6 +90,13 @@ select:focus,input:focus{outline:2px solid #cfd8ea;outline-offset:0;border-color
 @media(max-width:820px){.g3,.g4{grid-template-columns:1fr 1fr}}
 .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
+.labslot .panel-head{align-items:center}
+.labslot .panel-title p a,.labmx a{color:var(--ink)}
+.labslot .ctl>label{white-space:nowrap}
+.labslot input[type=url]{min-width:0}
+@media(max-width:640px){.labslot .ctl{flex-wrap:wrap}.labslot input[type=url],.labslot input[type=file]{width:100%!important;min-width:0;flex:1 1 100%}}
+.labmx th .btn{padding:3px 9px;font-size:11px;margin-top:4px}
+.labmx td{white-space:nowrap}
 .roster summary{cursor:pointer;font-weight:600;padding:6px 0}
 .roster h4{margin:12px 0 4px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
 .roster ul{margin:0 0 6px;padding-left:18px}.roster li{margin:2px 0}
@@ -183,7 +190,8 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.16.1 · 2026-10-09 19:22</span></footer>
+  <section class="page" id="pg-lab"></section>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.17.0 · 2026-10-09 19:42</span></footer>
 </main>
 <script>
 "use strict";
@@ -252,6 +260,7 @@ pt:{
  wkDown:"Sem resposta do Worker de resultados (verifique a ligação à Internet). Docente: confirme que o worker.js do quiz está publicado em",
  resLocked:"Exportar e apagar requerem o código do docente.",
  clsH:"Resultados da turma", clsGo:"Descarregar CSV", clsBusy:"A carregar…",
+ tabLab:"Entregas", labH:"Entregas de laboratório", labP:"Escreva o nome e o apelido, escolha o grupo de laboratório e entregue cada entrega aberta: um PDF (até 10 MB) ou um link (Drive / OneDrive). Uma nova entrega substitui a anterior enquanto estiver aberta.", labSub:"Entrega", labOpen:"Aberta", labClosed:"Fechada", labDone:"Entregue", labOr:"ou link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Entregar", labResend:"Substituir", labSending:"A enviar…", labSent:"Entregue ✓", labLast:"Última:", labPick:"Escolha o grupo de laboratório para ver as entregas.", labNeedFile:"Escolha um PDF ou cole um link.", labTooBig:"O PDF tem mais de 10 MB: comprima-o ou entregue um link.", labNotPdf:"Só ficheiros PDF.", labBadLink:"O link tem de começar por https://", labClosedMsg:"Fechada: o docente abre-a na aula.", labIsClosed:"Esta entrega está fechada.", labReplace:"Entregar de novo substitui a anterior.", labOld:"As entregas ainda não estão disponíveis: o docente tem de atualizar o Worker.", labAdmH:"Entregas de laboratório", labAdmP:"Abra ou feche cada entrega para todos os grupos. Passe o rato sobre ✓ para ver quem entregou.", labOpenB:"Abrir", labCloseB:"Fechar", labOpenList:"abertas", labNone:"nenhuma", labGrp:"Grupo", labAdmOld:"Para gerir as entregas de laboratório, atualize o Worker: Cloudflare > quiz-results > Edit code > colar o worker.js atual > Deploy.",
  thPts:"Pontos (0–5)", ptsUnit:"pontos", clsAll:"Todas", clsCount:"tentativas", clsCount1:"tentativa", thisDev:"Neste dispositivo", clsAvg:"média", qLeft:"Perguntas por responder", tLeft:"Tempo restante",
  clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results). A lista mostra código da turma, grupo, código da tentativa e nota, sem nomes; os nomes só aparecem no CSV.",
  clsDone:"tentativas descarregadas.", clsNone:"Ainda não há tentativas guardadas no Worker.",
@@ -321,6 +330,7 @@ en:{
  wkDown:"No answer from the results Worker (check the internet connection). Teacher: check that the quiz worker.js is deployed at",
  resLocked:"Exporting and clearing need the teacher code.",
  clsH:"Class results", clsGo:"Download CSV", clsBusy:"Loading…",
+ tabLab:"Submissions", labH:"Lab submissions", labP:"Type your first name and surname, choose your lab group and hand in each open submission: a PDF (up to 10 MB) or a link (Drive / OneDrive). While a submission is open, a new one replaces the previous one.", labSub:"Submission", labOpen:"Open", labClosed:"Closed", labDone:"Submitted", labOr:"or link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Submit", labResend:"Replace", labSending:"Uploading…", labSent:"Submitted ✓", labLast:"Last:", labPick:"Choose your lab group to see its submissions.", labNeedFile:"Choose a PDF or paste a link.", labTooBig:"The PDF is larger than 10 MB: compress it or submit a link.", labNotPdf:"PDF files only.", labBadLink:"The link must start with https://", labClosedMsg:"Closed: your teacher opens it in class.", labIsClosed:"This submission is closed.", labReplace:"Submitting again replaces the previous one.", labOld:"Submissions are not available yet: the teacher must update the Worker.", labAdmH:"Lab submissions", labAdmP:"Open or close each submission for every group. Hover over ✓ to see who submitted.", labOpenB:"Open", labCloseB:"Close", labOpenList:"open", labNone:"none", labGrp:"Group", labAdmOld:"To manage the lab submissions, update the Worker: Cloudflare > quiz-results > Edit code > paste the current worker.js > Deploy.",
  thPts:"Points (0–5)", ptsUnit:"points", clsAll:"All", clsCount:"attempts", clsCount1:"attempt", thisDev:"This device", clsAvg:"average", qLeft:"Questions left", tLeft:"Time left",
  clsP:"Every attempt your students sent to the Worker (private quiz-results repository). The list shows class code, group, attempt code and score, without names; names appear only in the CSV.",
  clsDone:"attempts downloaded.", clsNone:"No attempts stored in the Worker yet.",
@@ -438,11 +448,14 @@ function drawKind(){
   const box=$("#kindsel"); box.setAttribute("aria-label",t("kindAria"));
   box.querySelectorAll("button").forEach(b=>{ b.textContent=t(b.dataset.kind==="lab"?"kindLab":"kindTheory"); b.setAttribute("aria-pressed",String(b.dataset.kind===KIND)); });
 }
-function setKind(k){
-  const nm=$("#c-name")?$("#c-name").value:""; // keep a name already typed on the start screen
+function setKind(k){ // LAB: submissions only (no lectures or quizzes); Theoretical: the quiz tabs
+  const field=()=>KIND==="lab" ? $("#l-name") : $("#c-name"); // the name field of the visible page
+  const typed=field(), nm=typed?typed.value:""; // keep a name already typed
   KIND=k; try{ localStorage.setItem("qm_kind",k); }catch(e){}
-  drawKind(); renderPage();
-  const inp=$("#c-name"); if(inp && nm){ inp.value=nm; inp.dispatchEvent(new Event("input")); }
+  if(k==="lab" && TAB!=="res") TAB="lab";
+  if(k==="theory" && TAB==="lab") TAB="quiz";
+  drawKind(); renderTabs(); renderPage();
+  const inp=field(); if(inp && nm && !inp.value){ inp.value=nm; inp.dispatchEvent(new Event("input")); }
 }
 // Score as points on a 0–5 scale: correct / questions × 5 (14/20 → 3.5), two decimals at most
 const PTS_MAX = 5;
@@ -451,9 +464,10 @@ const fmtPts = v => (Math.round(v * 100) / 100).toFixed(2).replace(/\.?0+$/, "")
 function grpLabel(v){ return v==="architects"?t("grpArch"):v==="engineers"?t("grpEng"):v||""; }
 
 /* ---------- tabs ---------- */
-let TAB = "quiz";
+let TAB = KIND==="lab" ? "lab" : "quiz";
 function renderTabs(){
-  $("#tablist").innerHTML = STR[LANG].tabs.map(([id,n,label]) =>
+  const tabs = KIND==="lab" ? [["lab","01",t("tabLab")], ["res","02",STR[LANG].tabs.find(x=>x[0]==="res")[2]]] : STR[LANG].tabs;
+  $("#tablist").innerHTML = tabs.map(([id,n,label]) =>
     `<button class="tab" role="tab" data-tab="${id}" aria-selected="${id===TAB}"><span class="n">${n}</span>${esc(label)}</button>`).join("");
   document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{TAB=b.dataset.tab; renderTabs(); renderPage();});
 }
@@ -472,6 +486,7 @@ function renderPage(){
   if(TAB==="proj"){ $("#pg-proj").classList.add("on"); renderProj(); }
   if(TAB==="bank"){ $("#pg-bank").classList.add("on"); renderBank(""); }
   if(TAB==="res"){ $("#pg-res").classList.add("on"); renderRes(); }
+  if(TAB==="lab"){ $("#pg-lab").classList.add("on"); renderLab(); }
 }
 
 /* ---------- quiz tab ---------- */
@@ -490,12 +505,7 @@ function renderQuiz(){
     const wantN = (Q && Q.done) ? Q.n : DEF.n;
     const selN = validN.includes(wantN) ? wantN : validN[validN.length-1];
     const selM = (Q && Q.done && Q.mins) ? Q.mins : DEF.mins;
-    let lastLab=""; try{ lastLab=localStorage.getItem("qm_lab")||""; }catch(e){}
-    const selG = (Q && Q.done) ? (Q.klass||"") : KIND==="lab" ? lastLab : DEF.group;
-    const LAB = KIND==="lab";
-    const grpSel = LAB
-      ? `<select id="c-klass"><option value="">—</option>${["architects","engineers"].map(tr=>`<optgroup label="${esc(t(tr==="architects"?"grpArch":"grpEng"))}">${LAB_GROUPS[tr].map(([L,h])=>{ const v=labValue(tr,L,h); return `<option value="${esc(v)}"${v===selG?" selected":""}>${esc(labName(L,h))}</option>`; }).join("")}</optgroup>`).join("")}</select>`
-      : `<select id="c-klass"><option value="">—</option><option value="architects"${selG==="architects"?" selected":""}>${esc(t("grpArch"))}</option><option value="engineers"${selG==="engineers"?" selected":""}>${esc(t("grpEng"))}</option></select>`;
+    const selG = (Q && Q.done) ? (Q.klass||"") : DEF.group;
     el.innerHTML = `
       <div class="pagehead"><h2>${esc(t("quizH"))}</h2><p>${esc(t("quizP"))}</p></div>
       <div class="controls">
@@ -504,8 +514,8 @@ function renderQuiz(){
         <span class="ctl"><label>${esc(t("bank"))}</label><select id="c-lesson"${lockL?" disabled":""}>${lessonOptions(defLesson)}</select></span>
         <span class="ctl"><label>${esc(t("nq"))}</label>
           <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===selN?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
-        <span class="ctl"><label>${esc(t(LAB?"nameFull":"name"))}</label><input type="text" id="c-name" placeholder="${LAB?esc(t("nameFullPh")):"—"}"></span>
-        <span class="ctl"><label>${esc(t(LAB?"labGroup":"klass"))}</label>${grpSel}</span>
+        <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
+        <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects"${selG==="architects"?" selected":""}>${esc(t("grpArch"))}</option><option value="engineers"${selG==="engineers"?" selected":""}>${esc(t("grpEng"))}</option></select></span>
         <label class="chk"><input type="checkbox" id="c-sq" checked> ${esc(t("shufQ"))}</label>
         <label class="chk"><input type="checkbox" id="c-so" checked> ${esc(t("shufO"))}</label>
         <label class="chk"><input type="checkbox" id="c-ob" checked> ${esc(t("oneBy"))}</label>
@@ -530,8 +540,7 @@ function renderQuiz(){
     $("#c-start").onclick = ()=>{
       const nm=$("#c-name").value.trim().replace(/\s+/g," "), kg=$("#c-klass").value;
       if(!nm || !kg){ $("#c-warn").textContent=t("needId"); return; }
-      if(LAB && !fullName(nm)){ $("#c-warn").textContent=t("needFull"); $("#c-name").focus(); return; }
-      try{ localStorage.setItem("qm_name",nm); localStorage.setItem("qm_group",kg); if(LAB) localStorage.setItem("qm_lab",kg); }catch(e){}
+      try{ localStorage.setItem("qm_name",nm); localStorage.setItem("qm_group",kg); }catch(e){}
       if(DEF.mode==="quiz"){ startQuiz(); return; }
       // an attempt in progress, or a finished one of the same lecture, is resumed (restart = teacher code)
       if(!S || (S.done && S.lesson!==LESSON_SEL)) startSession(nm,kg);
@@ -546,13 +555,99 @@ function renderQuiz(){
     };
     const gate=()=>{ $("#c-start").disabled = !($("#c-name").value.trim() && $("#c-klass").value); $("#c-warn").textContent=""; };
     $("#c-name").oninput=gate; $("#c-klass").oninput=gate; gate();
-    if(LAB) $("#c-name").onchange=()=>{ const v=$("#c-name").value.trim(); if(v && !fullName(v)) $("#c-warn").textContent=t("needFull"); };
     if(Q && Q.done) renderResult($("#q-result"));
   } else {
     renderAttempt(el);
   }
 }
 const fullName = v => /\S+\s+\S+/.test(v); // LAB: first name and surname
+
+/* ---------- LAB submissions (students): 5 per lab group, a PDF ≤ 10 MB or a link ---------- */
+const LAB_N = 5, LAB_MAX = 10*1024*1024;
+let LABST = null; // {grp, open:[k], subs:{k:{date,kind,file,size,link}}} of the chosen group
+const labParse = v => { const m=/^(Architects|Engineers) · Group ([A-Z])\b/.exec(v||""); return m ? {track:m[1].toLowerCase(), g:m[2]} : null; };
+const fmtMB = b => (b>=1048576 ? (b/1048576).toFixed(1)+" MB" : Math.max(1,Math.round((b||0)/1024))+" kB");
+const safeLink = u => /^https:\/\/[^\s"<>]+$/i.test(u||"");
+function labGroupSelect(id, sel){
+  return `<select id="${id}"><option value="">—</option>${["architects","engineers"].map(tr=>`<optgroup label="${esc(t(tr==="architects"?"grpArch":"grpEng"))}">${
+    LAB_GROUPS[tr].map(([L,h])=>{ const v=labValue(tr,L,h); return `<option value="${esc(v)}"${v===sel?" selected":""}>${esc(labName(L,h))}</option>`; }).join("")}</optgroup>`).join("")}</select>`;
+}
+function renderLab(){
+  let nm="", grp=""; try{ nm=localStorage.getItem("qm_name")||""; grp=localStorage.getItem("qm_lab")||""; }catch(e){}
+  $("#pg-lab").innerHTML=`<div class="pagehead"><h2>${esc(t("labH"))}</h2><p>${esc(t("labP"))}</p></div>
+    <div class="controls">
+      <span class="ctl"><label>${esc(t("nameFull"))}</label><input type="text" id="l-name" placeholder="${esc(t("nameFullPh"))}" autocomplete="name"></span>
+      <span class="ctl"><label>${esc(t("labGroup"))}</label>${labGroupSelect("l-grp", grp)}</span>
+      <span class="hint" id="l-msg"></span>
+    </div>
+    <div id="l-slots"></div>`;
+  $("#l-name").value=nm;
+  $("#l-name").onchange=()=>{ const v=$("#l-name").value.trim().replace(/\s+/g," "); $("#l-msg").textContent = v && !fullName(v) ? t("needFull") : "";
+    if(fullName(v)) try{ localStorage.setItem("qm_name",v); }catch(e){} };
+  $("#l-grp").onchange=()=>{ try{ localStorage.setItem("qm_lab",$("#l-grp").value); }catch(e){} LABST=null; loadLabStatus(); };
+  if(LABST && LABST.grp===grp) drawLabSlots(); // last known state at once, then a fresh one (the teacher may have opened one)
+  loadLabStatus();
+}
+async function loadLabStatus(){ // "open the group": its 5 submissions, open/closed and what was handed in
+  const out=$("#l-slots"), msg=$("#l-msg"), grp=$("#l-grp").value, p=labParse(grp);
+  if(!p){ out.innerHTML=`<p class="hint">${esc(t("labPick"))}</p>`; return; }
+  const url=submitURL(); if(!url){ msg.textContent=t("trNeedURL"); return; }
+  msg.textContent=t("clsBusy");
+  try{
+    const r=await toWorker(url,{action:"labstatus", track:p.track, g:p.g});
+    const j=await r.json().catch(()=>({}));
+    if($("#l-grp").value!==grp) return; // another group was chosen meanwhile
+    if(!r.ok || !j.ok){ out.innerHTML=""; msg.textContent = r.status===403 ? t("labOld") : `${t("clsFail")} (${r.status}${j.error?" "+j.error:""})`; return; }
+    msg.textContent=""; LABST={grp, open:j.open||[], subs:j.subs||{}}; drawLabSlots();
+  }catch(e){ msg.textContent=await workerDiag(url); }
+}
+function drawLabSlots(){
+  const out=$("#l-slots"); if(!out || !LABST) return;
+  out.innerHTML=[...Array(LAB_N).keys()].map(i=>{
+    const k=i+1, open=LABST.open.includes(k), x=LABST.subs[k];
+    const last = !x ? "" : `${esc(t("labLast"))} ${esc(fmtLocal(x.date))} · ${x.kind==="pdf" ? `${esc(x.file||"PDF")} (${fmtMB(x.size)})`
+      : safeLink(x.link) ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(t("labLinkW"))}</a>` : esc(t("labLinkW"))}`;
+    const pill = x ? `<span class="pill ok">${esc(t("labDone"))}</span>` : `<span class="pill ${open?"idle":"bad"}">${esc(t(open?"labOpen":"labClosed"))}</span>`;
+    return `<div class="panel labslot"><div class="panel-head"><div class="panel-title"><h3>${esc(t("labSub"))} ${k}</h3>${last?`<p>${last}</p>`:""}</div>${pill}</div>
+      <div class="panel-body">${open ? `<div class="controls" style="margin:0">
+        <span class="ctl"><label>PDF ≤ 10 MB</label><input type="file" id="l-f${k}" accept="application/pdf,.pdf"></span>
+        <span class="ctl"><label>${esc(t("labOr"))}</label><input type="url" id="l-l${k}" placeholder="${esc(t("labLinkPh"))}" style="width:230px"></span>
+        <button class="btn solid" id="l-s${k}">${esc(t(x?"labResend":"labSend"))}</button>
+        <span class="hint" id="l-m${k}">${x?esc(t("labReplace")):""}</span></div>`
+      : `<p class="hint" style="margin:0">${esc(t("labClosedMsg"))}</p>`}</div></div>`;
+  }).join("");
+  for(let k=1;k<=LAB_N;k++){ const b=$("#l-s"+k); if(b) b.onclick=()=>labSend(k); }
+}
+const fileB64 = f => new Promise((ok,no)=>{ const r=new FileReader(); r.onload=()=>ok(String(r.result).split(",")[1]||""); r.onerror=()=>no(r.error); r.readAsDataURL(f); });
+async function labSend(k){
+  const msg=$("#l-m"+k), btn=$("#l-s"+k), p=labParse($("#l-grp").value);
+  const nm=$("#l-name").value.trim().replace(/\s+/g," ");
+  const f=$("#l-f"+k).files[0], link=$("#l-l"+k).value.trim();
+  if(!fullName(nm)){ msg.textContent=t("needFull"); $("#l-name").focus(); return; }
+  if(!p){ msg.textContent=t("labPick"); return; }
+  if(!f && !link){ msg.textContent=t("labNeedFile"); return; }
+  if(f && !(f.type==="application/pdf" || /\.pdf$/i.test(f.name))){ msg.textContent=t("labNotPdf"); return; }
+  if(f && f.size>LAB_MAX){ msg.textContent=t("labTooBig"); return; }
+  if(!f && !safeLink(link)){ msg.textContent=t("labBadLink"); return; }
+  const url=submitURL(); if(!url){ msg.textContent=t("trNeedURL"); return; }
+  btn.disabled=true; msg.textContent=t("labSending");
+  try{
+    const q=new URLSearchParams({action:"labsubmit", track:p.track, g:p.g, k:String(k), name:nm});
+    let body="";
+    if(f){ q.set("file", f.name); body=await fileB64(f); } else { q.set("kind","link"); q.set("link",link); }
+    const r=await fetch(url+(url.includes("?")?"&":"?")+q, {method:"POST", headers:{"Content-Type":"text/plain;charset=UTF-8"}, body});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok && j.ok){
+      try{ localStorage.setItem("qm_name",nm); }catch(e){}
+      await loadLabStatus(); const m=$("#l-m"+k); if(m) m.textContent=t("labSent"); return;
+    }
+    if(j.error==="closed"){ await loadLabStatus(); ($("#l-m"+k)||$("#l-msg")).textContent=t("labIsClosed"); return; } // closed meanwhile: show the fresh state
+    msg.textContent = (r.status===413 || j.error==="too large") ? t("labTooBig")
+      : j.error==="not pdf" ? t("labNotPdf") : j.error==="link" ? t("labBadLink") : (r.status===403 || j.error==="bad json") ? t("labOld")
+      : `${t("clsFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`;
+  }catch(e){ msg.textContent=await workerDiag(url); }
+  btn.disabled=false;
+}
 function startQuiz(){
   const nm=$("#c-name").value.trim(), kg=$("#c-klass").value;
   if(!nm || !kg){
@@ -1149,7 +1244,7 @@ function renderRes(){
         <button class="btn" id="e-cls">${esc(t("clsGo"))}</button>
         ${tcodeLoad()?`<button class="btn" id="e-tforget">${esc(t("tcForget"))}</button>`:""}
         <span class="hint" id="e-clsmsg"></span>
-      </div><div id="e-roster"></div><div id="e-clsout"></div></div></div>`)+
+      </div><div id="e-lab"></div><div id="e-roster"></div><div id="e-clsout"></div></div></div>`)+
     (all.length?`<div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("thisDev"))}</h3></div></div><div class="tbl-scroll"><table class="data">
       <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thPts"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
       <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(grpLabel(r.klass)||"—")}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num"><b>${fmtPts(pts(r.score,r.n))}</b></td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
@@ -1206,7 +1301,7 @@ async function fetchClass(){ // records, or null with the reason shown
     if(!r.ok || !j.ok || !Array.isArray(j.records)){ msg.textContent=`${t("clsFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`; return null; }
     const isNew=tcodeLoad()!==TRCODE; tcodeKeep(true);
     msg.textContent=(j.records.length?`${j.records.length} ${t(j.records.length===1?"clsCount1":"clsCount")}`:t("clsNone"))+(j.truncated?` ${t("clsTrunc")}`:"")+(isNew?` · ${t("tcKept")}`:"");
-    CLS={records:j.records, filter:CLS?CLS.filter:"", roster:("roster" in j)?j.roster:undefined, rosterError:j.rosterError||""};
+    CLS={records:j.records, filter:CLS?CLS.filter:"", roster:("roster" in j)?j.roster:undefined, rosterError:j.rosterError||"", lab:("lab" in j)?(j.lab||{open:[],subs:{}}):undefined};
     return j.records;
   }catch(e){ msg.textContent=await workerDiag(url); return null; }
 }
@@ -1260,7 +1355,51 @@ function drawRoster(){ // lab groups with names: shown only once the Worker acce
     <p class="hint" style="margin:4px 0 0">${esc(t("rosterP"))}</p><div class="grid g2">${cols}</div></details>`;
   out.querySelector("details").ontoggle=e=>{ ROSTER_OPEN=e.target.open; };
 }
+let LAB_ADM_OPEN = null; // remembered open/closed state of the panel (default: open in LAB mode)
+function drawLabAdmin(){
+  const out=$("#e-lab"); if(!out) return;
+  if(!CLS){ out.innerHTML=""; return; }
+  if(CLS.lab===undefined){ out.innerHTML=`<p class="hint" style="margin:10px 0 0">${esc(t("labAdmOld"))}</p>`; return; }
+  const L=CLS.lab, rows=[];
+  ["architects","engineers"].forEach(tr=>LAB_GROUPS[tr].forEach(([g,h])=>rows.push({tr,g,h})));
+  const ks=[...Array(LAB_N).keys()].map(i=>i+1), sub=(r,k)=>L.subs[`${r.tr}-${r.g}-s${k}`];
+  const isOpen=LAB_ADM_OPEN===null ? KIND==="lab" : LAB_ADM_OPEN;
+  out.innerHTML=`<details class="roster" style="margin:12px 0 0"${isOpen?" open":""}><summary>${esc(t("labAdmH"))} · ${esc(t("labOpenList"))}: ${L.open.length?L.open.join(", "):esc(t("labNone"))}</summary>
+    <p class="hint" style="margin:4px 0 8px">${esc(t("labAdmP"))}</p>
+    <div class="tbl-scroll"><table class="data labmx"><thead><tr><th>${esc(t("labGrp"))}</th>${ks.map(k=>{ const o=L.open.includes(k);
+      return `<th class="num">${esc(t("labSub"))} ${k}<br><button class="btn${o?" solid":""}" data-lk="${k}" data-lo="${o?0:1}">${esc(t(o?"labCloseB":"labOpenB"))}</button><br><span class="meta">${rows.filter(r=>sub(r,k)).length}/${rows.length}</span></th>`; }).join("")}</tr></thead>
+    <tbody>${rows.map(r=>`<tr><td>${esc(t(r.tr==="architects"?"grpArch":"grpEng"))} · ${esc(labName(r.g,r.h))}</td>${ks.map(k=>{ const x=sub(r,k);
+      if(!x) return `<td class="num">—</td>`;
+      const what = x.kind==="pdf" ? `<a href="#" data-dl="${r.tr}|${r.g}|${k}">PDF</a>` : safeLink(x.link) ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(t("labLinkW"))}</a>` : "";
+      return `<td class="num" title="${esc(x.name||"")}">✓ ${esc(fmtLocal(x.date))}<br>${what}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div></details>`;
+  out.querySelector("details").ontoggle=e=>{ LAB_ADM_OPEN=e.target.open; };
+  out.querySelectorAll("[data-lk]").forEach(b=>b.onclick=()=>labToggle(+b.dataset.lk, b.dataset.lo==="1", b));
+  out.querySelectorAll("[data-dl]").forEach(a=>a.onclick=e=>{ e.preventDefault(); const [tr,g,k]=a.dataset.dl.split("|"); labDownload(tr,g,+k,a); });
+}
+async function labToggle(k, open, btn){
+  const url=submitURL(), msg=$("#e-clsmsg"); btn.disabled=true;
+  try{
+    const r=await toWorker(url,{action:"labopen", code:TRCODE, k, open});
+    const j=await r.json().catch(()=>({}));
+    if(r.ok && j.ok){ CLS.lab=j.lab; drawLabAdmin(); return; }
+    msg.textContent = r.status===403 ? await badCodeWhy(url,j) : `${t("clsFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`;
+  }catch(e){ msg.textContent=await workerDiag(url); }
+  btn.disabled=false;
+}
+async function labDownload(tr, g, k, a){
+  const url=submitURL(), msg=$("#e-clsmsg"); a.textContent=t("clsBusy");
+  try{
+    const r=await toWorker(url,{action:"labfile", code:TRCODE, track:tr, g, k});
+    if(r.ok){
+      const blob=await r.blob(), x=document.createElement("a");
+      x.href=URL.createObjectURL(blob); x.download=`${TRACK_EN[tr]}-Group${g}-Submission${k}.pdf`;
+      document.body.appendChild(x); x.click(); setTimeout(()=>{ URL.revokeObjectURL(x.href); x.remove(); },500);
+    } else { const j=await r.json().catch(()=>({})); msg.textContent=`${t("clsFail")} (${r.status}${j.error?" "+j.error:""})`; }
+  }catch(e){ msg.textContent=await workerDiag(url); }
+  a.textContent="PDF";
+}
 function drawClass(){
+  drawLabAdmin();
   drawRoster(); // list on screen without student names (names only in the CSV): find a score by attempt code
   const out=$("#e-clsout"); if(!out) return;
   if(!CLS || !CLS.records.length){ out.innerHTML=""; return; }
