@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.10.0 — 2026-10-09
+  Quizzes Machine 1.11.0 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -227,7 +227,8 @@ pt:{
  trRedo:"Traduzir esta aula de novo? As suas correções serão substituídas.",
  trLoaded:"Carregado de bank-pt.json — pode corrigir e descarregar de novo.",
  trEmpty:"Há campos em português vazios — preencha-os antes de descarregar.",
- trSaved:"bank-pt.json descarregado — carregue-o na raiz do repositório quiz-machine."
+ trSaved:"bank-pt.json descarregado — carregue-o na raiz do repositório quiz-machine.",
+ projDone:"Respondeu a todas as perguntas.", answered:"Respondidas"
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -282,7 +283,8 @@ en:{
  trRedo:"Translate this lecture again? Your corrections will be replaced.",
  trLoaded:"Loaded from bank-pt.json — you can correct it and download again.",
  trEmpty:"Some Portuguese fields are empty — fill them in before downloading.",
- trSaved:"bank-pt.json downloaded — upload it to the root of the quiz-machine repository."
+ trSaved:"bank-pt.json downloaded — upload it to the root of the quiz-machine repository.",
+ projDone:"You have answered all the questions.", answered:"Answered"
 }};
 const LESSON = {
 pt:{aula0:"Aula 00 — Conhecimento e Investigação Científica",aula1:"Aula 01 — Evolução do Clima",aula2:"Aula 02 — Análise Climática",aula3:"Aula 03 — Arquitetura Bioclimática"},
@@ -448,7 +450,7 @@ function renderQuiz(){
       if(!nm || !kg){ $("#c-warn").textContent=t("needId"); return; }
       try{ localStorage.setItem("qm_name",nm); localStorage.setItem("qm_group",kg); }catch(e){}
       if(DEF.mode==="quiz"){ startQuiz(); return; }
-      P.lesson=DEF.lesson; projReshuffle();
+      if(!S) startSession(nm,kg); // an attempt in progress or finished is resumed, not restarted (restart = teacher code)
       TAB="proj"; renderTabs(); renderPage();
       window.scrollTo(0,0);
     };
@@ -594,26 +596,28 @@ function renderResult(el){
   else{
     try{ if(localStorage.getItem("qa_sent_"+Q.id)) sentState(); }catch(e){}
     if(DEF.code){ try{$("#r-code").value=DEF.code;}catch(e){} }
-    $("#r-send").onclick=sendResult;
+    $("#r-send").onclick=()=>sendResult(Q,"r",sentState);
   }
 }
 function sentState(){ $("#r-send").disabled=true; $("#r-send").textContent=t("sent"); $("#r-sendmsg").textContent=Q.id; }
-function resultPayload(code){
-  return {code, id:Q.id, name:Q.name, klass:Q.klass, lesson:LESSON[LANG][Q.lesson],
-    n:Q.n, score:Q.score, pct:+(Q.score/Q.n*100).toFixed(1), secs:Q.secs,
+function resultPayload(code,A){ // A: attempt (quiz Q or projector S)
+  A=A||Q;
+  return {code, id:A.id, name:A.name, klass:A.klass, lesson:LESSON[LANG][A.lesson],
+    n:A.n, score:A.score, pct:+(A.score/A.n*100).toFixed(1), secs:A.secs,
     date:new Date().toISOString(),
-    detail:Q.items.map((it,i)=>`${it.src+1}:${Q.ans[i]===undefined?"-":LETTERS[Q.ans[i]]}${Q.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
+    detail:A.items.map((it,i)=>`${it.src+1}:${A.ans[i]===undefined?"-":LETTERS[A.ans[i]]}${A.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
 }
-async function sendResult(){
-  const btn=$("#r-send"), msg=$("#r-sendmsg"), code=$("#r-code").value.trim();
+async function sendResult(A,pre,onSent){ // pre: id prefix of the send controls ("r" quiz, "pe" projector)
+  A=A||Q; pre=pre||"r"; onSent=onSent||sentState;
+  const btn=$(`#${pre}-send`), msg=$(`#${pre}-sendmsg`), code=$(`#${pre}-code`).value.trim();
   if(!code){ msg.textContent=t("needCode"); return; }
   btn.disabled=true; btn.textContent=t("sending"); msg.textContent="";
   try{
-    const r=await fetch(submitURL(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPayload(code))});
+    const r=await fetch(submitURL(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPayload(code,A))});
     if(r.status===403){ msg.textContent=t("badCode"); btn.disabled=false; btn.textContent=t("send"); return; }
     if(!r.ok) throw new Error("http "+r.status);
-    try{localStorage.setItem("qa_sent_"+Q.id,"1");}catch(e){}
-    sentState();
+    try{localStorage.setItem("qa_sent_"+A.id,"1");}catch(e){}
+    onSent();
   }catch(e){ msg.textContent=t("netFail"); btn.disabled=false; btn.textContent=t("send"); }
 }
 
@@ -634,6 +638,36 @@ function projReshuffle(full){
   P.deck = shuffle([...Array(bank.length).keys()]);
   P.pos = -1; P.show = false; P.pick = null;
 }
+/* student attempt (after Proceed): N questions from the deck, next question on answer, score at the end */
+let S = null; // {id,name,klass,lesson,n,items:[{src,correct}],ans:{},startT,done,timedOut,secs,score,sent}
+const ADVANCE_MS = 500; // pause on the chosen answer before the next question
+function startSession(nm,kg){
+  P.lesson=DEF.lesson; projReshuffle();
+  const bank=currentBank(P.lesson), sel=$("#c-n"); // "Questions" setting on the start screen (default ?n=, else 20)
+  const n=Math.min((sel && parseInt(sel.value,10)) || DEF.n, bank.length);
+  S={id:newAttemptId(), name:nm, klass:kg, lesson:P.lesson, n, ans:{},
+     items:P.deck.slice(0,n).map(bi=>({src:bi, correct:bank[bi].a})),
+     startT:Date.now(), done:false, timedOut:false, secs:0, score:0, sent:false};
+  P.pos=0; P.endsAt=Date.now()+DEF.mins*60*1000;
+}
+function finishSession(timedOut){
+  if(!S || S.done) return;
+  clearTimeout(P.advT);
+  if(window._ptT){clearInterval(window._ptT);window._ptT=null;}
+  S.done=true; S.timedOut=!!timedOut; P.endsAt=0; P.show=false; P.wantReveal=false;
+  S.secs=Math.round((Date.now()-S.startT)/1000);
+  S.score=S.items.filter((it,i)=>S.ans[i]===it.correct).length;
+  saveResult(S);
+  const EP=submitURL(), A=S;
+  if(EP && DEF.code){
+    fetch(EP,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPayload(DEF.code,A))})
+      .then(r=>{ if(!r.ok) throw new Error("http "+r.status);
+        A.sent=true; try{localStorage.setItem("qa_sent_"+A.id,"1");}catch(e){}
+        if(TAB==="proj" && S===A) renderProj(); })
+      .catch(()=>{});
+  }
+  if(TAB==="proj") renderProj();
+}
 function pBand(rem){ return rem>600?"g":rem>=300?"y":"r"; }
 function pTick(){
   const tm=$("#p-timer"), bar=$("#p-bar");
@@ -647,28 +681,34 @@ function pTick(){
 function pTimeUp(){
   P.over=true; P.endsAt=0;
   if(window._ptT){clearInterval(window._ptT);window._ptT=null;}
+  if(S && !S.done){ finishSession(true); return; }
   if(TAB==="proj") renderProj();
 }
 function renderProj(){
   if(window._ptT){clearInterval(window._ptT);window._ptT=null;}
   const el = $("#pg-proj");
   const bank = currentBank(P.lesson);
-  if(P.deck.length!==bank.length) projReshuffle(false); // PT/EN banks can differ in size (Lecture01: 46 vs 68)
+  const sess = !!(S && !S.done), ended = !!(S && S.done); // student attempt in progress / finished
+  if(!sess && P.deck.length!==bank.length) projReshuffle(false); // PT/EN banks can differ in size (Lecture01: 46 vs 68)
   if(P.endsAt && Date.now()>=P.endsAt){ P.over=true; P.endsAt=0; }
+  if(sess && P.over){ finishSession(true); return; }
   const total=DEF.mins*60;
   const rem=P.endsAt?Math.max(0,Math.round((P.endsAt-Date.now())/1000)):total;
   const b=pBand(P.endsAt?rem:total+1);
+  const count = S ? (ended?S.n:P.pos+1)+"/"+S.n : (P.pos>=0?(P.pos+1)+"/"+P.deck.length:"0/"+bank.length);
   el.innerHTML = `
-    <div class="pagehead"><h2>${esc(t("projH"))}</h2><p>${esc(t("projP"))}</p></div>
+    <div class="pagehead"><h2>${esc(S?t("quizH"):t("projH"))}</h2><p>${S
+      ? `<span class="meta">${esc(S.name)} · ${esc(grpLabel(S.klass))} · ${esc(LESSON[LANG][S.lesson])} · ${esc(S.id)}</span>`
+      : esc(t("projP"))}</p></div>
     <div class="controls">
-      <span class="ctl"><label>${esc(t("bank"))}</label><select id="p-lesson">${lessonOptions(P.lesson)}</select><span class="pill idle">${BANK_YEAR}</span></span>
-      <button class="btn solid" id="p-new"${P.over?" disabled":""}>${esc(t("newQ"))}</button>
-      <button class="btn" id="p-rev"${(P.pos<0||P.over)?" disabled":""}>${P.show?esc(t("hide")):esc(t("reveal"))}</button>
+      <span class="ctl"><label>${esc(t("bank"))}</label><select id="p-lesson"${S?" disabled":""}>${lessonOptions(P.lesson)}</select><span class="pill idle">${BANK_YEAR}</span></span>
+      ${S?"":`<button class="btn solid" id="p-new"${P.over?" disabled":""}>${esc(t("newQ"))}</button>`}
+      ${ended?"":`<button class="btn" id="p-rev"${(P.pos<0||P.over)?" disabled":""}>${P.show?esc(t("hide")):esc(t("reveal"))}</button>`}
       <button class="btn" id="p-reqb">${esc(t("reqRestart"))}</button>
-      <span class="ptimer ${b}" id="p-timer">${fmtTime(rem)}</span>
-      <span class="meta">${P.pos>=0?(P.pos+1)+"/"+P.deck.length:"0/"+bank.length}</span>
+      ${ended?"":`<span class="ptimer ${b}" id="p-timer">${fmtTime(rem)}</span>`}
+      <span class="meta">${count}</span>
     </div>
-    <div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div>
+    ${ended?"":`<div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div>`}
     ${P.over?`<div class="overbanner">${esc(t("overT"))} — ${esc(t("overP"))}</div>`:""}
     <div class="panel"><div class="panel-body" id="p-card"></div></div>
     <div class="reqpanel" id="p-req" style="display:none">
@@ -680,7 +720,7 @@ function renderProj(){
     </div>
     <p class="hint" id="p-msg"></p>`;
   $("#p-lesson").onchange=e=>{P.lesson=e.target.value; projReshuffle(false); renderProj();};
-  $("#p-new").onclick=()=>{
+  if($("#p-new")) $("#p-new").onclick=()=>{
     if(P.over) return;
     if(!P.endsAt) P.endsAt=Date.now()+total*1000;
     if(!P.deck.length) projReshuffle(false);
@@ -689,7 +729,7 @@ function renderProj(){
     else $("#p-msg").textContent="";
     P.show=false; P.pick=null; renderProj();
   };
-  $("#p-rev").onclick=()=>{
+  if($("#p-rev")) $("#p-rev").onclick=()=>{
     if(P.over) return;
     if(P.show){ P.show=false; renderProj(); return; }
     P.wantReveal=true;
@@ -711,7 +751,7 @@ function renderProj(){
     const body=`${LESSON[LANG][P.lesson]} · ${BANK_YEAR}
 ${t("thName")}: ${nm}
 ${t("klass")}: ${kg}
-${t("qOf")} ${P.pos+1}/${P.deck.length} · ${new Date().toISOString().slice(0,16).replace("T"," ")}
+${t("qOf")} ${count}${S?" · "+S.id:""} · ${new Date().toISOString().slice(0,16).replace("T"," ")}
 ${location.href.split("?")[0]}`;
     if(pe){ mail.href=`mailto:${pe}?subject=${encodeURIComponent(subj)}&body=${encodeURIComponent(body)}`; mail.style.display=""; msg.textContent=""; }
     else{ mail.style.display="none"; msg.textContent=t("noProf"); }
@@ -728,7 +768,7 @@ ${location.href.split("?")[0]}`;
     }
     if(inp.value===SETTINGS_CODE){ lockSave({f:0,u:0});
       if(P.wantReveal){ P.wantReveal=false; P.show=true; renderProj(); }
-      else { projReshuffle(); renderProj(); }
+      else { if(S) startSession(S.name,S.klass); else projReshuffle(); renderProj(); } // restart = new attempt
       return; }
     info.f=(info.f||0)+1;
     if(info.f===3) info.u=now+5*60*1000;
@@ -742,6 +782,11 @@ ${location.href.split("?")[0]}`;
   };
   const card=$("#p-card");
   if(P.endsAt && !P.over){ if(window._ptT)clearInterval(window._ptT); window._ptT=setInterval(pTick,500); }
+  if(ended){
+    card.innerHTML=projEndHTML();
+    if($("#pe-send")) $("#pe-send").onclick=()=>sendResult(S,"pe",()=>{ S.sent=true; renderProj(); });
+    return;
+  }
   if(P.pos<0){ card.innerHTML=`<p class="hint">${esc(t("projP"))}</p>`; return; }
   const s=bank[P.deck[P.pos]];
   const order=[0,1,2,3]; // fixed order on projector: same for the room
@@ -755,7 +800,31 @@ ${location.href.split("?")[0]}`;
   card.querySelectorAll(".proj-opt").forEach(b=>b.onclick=()=>{
     P.pick=parseInt(b.dataset.o,10);
     card.querySelectorAll(".proj-opt").forEach(x=>{ const on=x===b; x.classList.toggle("sel",on); x.setAttribute("aria-pressed",String(on)); });
+    if(sess){ // record and move on; a second tap within the pause changes the answer
+      S.ans[P.pos]=P.pick;
+      clearTimeout(P.advT); P.advT=setTimeout(projAdvance, ADVANCE_MS);
+    }
   });
+}
+function projAdvance(){
+  if(!S || S.done) return;
+  if(P.pos>=S.n-1){ finishSession(false); return; }
+  P.pos++; P.pick=null; P.show=false;
+  if(TAB==="proj") renderProj();
+}
+function projEndHTML(){ // score only: the correct answers stay behind the teacher code
+  const pct=S.score/S.n*100, pass=pct>=50, answered=Object.keys(S.ans).length;
+  return `<p class="qtext">${esc(S.timedOut?t("timeout"):t("projDone"))}</p>
+    <div class="grid g4">
+      <div class="stat"><div class="k">${esc(t("score"))}</div><div class="v">${S.score}<small>/${S.n} · ${pct.toFixed(0)}%</small></div>
+        <div class="s"><span class="pill ${pass?"ok":"bad"}">${esc(t(pass?"pass":"fail"))}</span></div></div>
+      <div class="stat"><div class="k">${esc(t("answered"))}</div><div class="v">${answered}<small>/${S.n}</small></div><div class="s">${esc(LESSON[LANG][S.lesson])}</div></div>
+      <div class="stat"><div class="k">${esc(t("time"))}</div><div class="v">${fmtTime(S.secs)}</div><div class="s">${esc(S.name)} · ${esc(grpLabel(S.klass))}</div></div>
+      <div class="stat"><div class="k">${esc(t("attempt"))}</div><div class="v" style="font-size:16px">${esc(S.id)}</div><div class="s">${BANK_YEAR}</div></div>
+    </div>`+(!submitURL()?"":`<div class="controls" style="margin:14px 0 0">${S.sent
+      ? `<span class="pill ok">${esc(t("sent"))}</span><span class="meta">${esc(S.id)}</span>`
+      : `<span class="ctl"><label>${esc(t("code"))}</label><input type="text" id="pe-code" style="width:130px" autocomplete="off" spellcheck="false" value="${esc(DEF.code)}"></span>
+         <button class="btn solid" id="pe-send">${esc(t("send"))}</button><span class="hint" id="pe-sendmsg"></span>`}</div>`);
 }
 
 /* ---------- bank tab ---------- */
@@ -917,17 +986,18 @@ function loadPT(){ // bank-pt.json next to index.html (GitHub Pages); silently a
 /* ---------- results ---------- */
 const LSKEY="quizAdvisorResultsV1";
 function loadRes(){ try{return JSON.parse(localStorage.getItem(LSKEY)||"[]");}catch(e){return[];} }
-function saveResult(){
+function saveResult(A){
   const all=loadRes();
-  all.push(resultRow());
+  all.push(resultRow(A));
   try{localStorage.setItem(LSKEY,JSON.stringify(all));}catch(e){}
 }
-function resultRow(){
+function resultRow(A){
+  A=A||Q;
   const d=new Date();
   return {date:d.toISOString().slice(0,16).replace("T"," "),
-    name:Q.name||"", klass:Q.klass||"", lesson:LESSON[LANG][Q.lesson],
-    id:Q.id, n:Q.n, score:Q.score, pct:+(Q.score/Q.n*100).toFixed(1), secs:Q.secs,
-    detail:Q.items.map((it,i)=>`${it.src+1}:${Q.ans[i]===undefined?"-":LETTERS[Q.ans[i]]}${Q.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
+    name:A.name||"", klass:A.klass||"", lesson:LESSON[LANG][A.lesson],
+    id:A.id, n:A.n, score:A.score, pct:+(A.score/A.n*100).toFixed(1), secs:A.secs,
+    detail:A.items.map((it,i)=>`${it.src+1}:${A.ans[i]===undefined?"-":LETTERS[A.ans[i]]}${A.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
 }
 function csvEsc(v){ v=String(v); return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
 function downloadCSV(rows, fname){
