@@ -33,6 +33,9 @@
 //  8. In the quiz page: 04 Results > unlock with 3016 > type the Worker teacher code
 //     and press Enter: the list of attempts (with averages by lecture and by group)
 //     appears; "Download CSV" downloads every attempt stored in quiz-results.
+//  9. LAB sessions: names per lab group go in roster.json at the root of the private
+//     quiz-results repo, {"architects":{"A":["First Surname"]},"engineers":{...}}.
+//     They are shown under "Lab groups" with the class results, never in the page code.
 
 const GH = "https://api.github.com";
 const RES_FALLBACK_MAX = 40; // per-file reads when GraphQL is unavailable (Workers free plan: 50 subrequests)
@@ -117,6 +120,24 @@ const pickRecord = (o) => o && typeof o === "object" && typeof o.id === "string"
 } : null;
 const parseRecord = (text) => { try { return pickRecord(JSON.parse(text)); } catch { return null; } };
 
+// roster.json (private quiz-results repo): {"architects": {"A": ["First Surname", ...]}, "engineers": {...}}.
+// Only names per lab group; the page holds the group letters and house types. Returned with the class results.
+function parseRoster(text) {
+  if (text == null) return { roster: null };
+  let o;
+  try { o = JSON.parse(text); } catch { return { roster: null, rosterError: "json" }; }
+  if (!o || typeof o !== "object") return { roster: null, rosterError: "json" };
+  const roster = {};
+  for (const track of ["architects", "engineers"]) {
+    const g = o[track] && typeof o[track] === "object" ? o[track] : {};
+    roster[track] = {};
+    for (const letter of Object.keys(g).filter((k) => /^[A-Z]$/.test(k))) {
+      roster[track][letter] = (Array.isArray(g[letter]) ? g[letter] : []).slice(0, 40).map((n) => String(n).slice(0, 80));
+    }
+  }
+  return { roster };
+}
+
 // Every attempt in quiz-results/results/: one GraphQL call for the whole folder, REST file by file as fallback.
 async function classResults(b, env) {
   if (!env.TEACHER_CODE) return json({ ok: false, error: "code", detail: "TEACHER_CODE not set" }, 403);
@@ -129,13 +150,13 @@ async function classResults(b, env) {
     "Content-Type": "application/json",
     "User-Agent": "quizzes-machine-worker",
   };
-  let records = null, truncated = false;
+  let records = null, truncated = false, rosterText; // rosterText: undefined = not read yet, null = no file
   try {
     const r = await fetch(`${GH}/graphql`, {
       method: "POST",
       headers,
       body: JSON.stringify({
-        query: `query($o:String!,$n:String!){repository(owner:$o,name:$n){object(expression:"HEAD:results"){... on Tree{entries{name object{... on Blob{text}}}}}}}`,
+        query: `query($o:String!,$n:String!){repository(owner:$o,name:$n){object(expression:"HEAD:results"){... on Tree{entries{name object{... on Blob{text}}}}} roster:object(expression:"HEAD:roster.json"){... on Blob{text}}}}`,
         variables: { o: owner, n: name },
       }),
     });
@@ -143,6 +164,7 @@ async function classResults(b, env) {
     if (r.ok && !j.errors && j.data && j.data.repository) {
       const entries = (j.data.repository.object && j.data.repository.object.entries) || []; // no folder yet = no results
       records = entries.filter((e) => e.name.endsWith(".json") && e.object && e.object.text).map((e) => parseRecord(e.object.text));
+      rosterText = (j.data.repository.roster && j.data.repository.roster.text) || null;
     }
   } catch { /* REST below */ }
   if (!records) {
@@ -160,8 +182,14 @@ async function classResults(b, env) {
       }));
     }
   }
+  if (rosterText === undefined) {
+    try {
+      const r = await fetch(`${GH}/repos/${env.REPO}/contents/roster.json`, { headers: { ...headers, Accept: "application/vnd.github.raw+json" } });
+      rosterText = r.ok ? await r.text() : null;
+    } catch { rosterText = null; }
+  }
   records = records.filter(Boolean).sort((a, b2) => a.date.localeCompare(b2.date));
-  return json({ ok: true, n: records.length, truncated, records });
+  return json({ ok: true, n: records.length, truncated, records, ...parseRoster(rosterText) });
 }
 
 // Settings as pasted in the dashboard, minus stray spaces/newlines (a newline in the token makes fetch throw)

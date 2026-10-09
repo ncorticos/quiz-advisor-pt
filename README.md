@@ -30,6 +30,22 @@ Same visual language as [Architecture Advisor](https://ncorticos.github.io/archi
 Question bank v1.0.0: 348 questions extracted from lessons L.01–L.03 —
 Aula 1–3 (46/54/74, PT) + Lecture 1–3 (46/54/74, EN).
 
+## Theoretical / LAB
+
+The header switch (same style as EN | PT) sets the session type on each device;
+a `?type=lab` or `?type=theory` link sets it too.
+
+- **Theoretical** — name + group (Architects / Engineers), as before.
+- **LAB** — first name and surname + lab group, listed per track as
+  `Group X - house type` (Architects A–G, J; Engineers A–F). The attempt is
+  stored with the group as `Engineers · Group C - Kurpiowska`, so the class
+  results average it per lab group.
+
+The page holds only the group letters and house types (`LAB_GROUPS` in
+`index.html`). Student names per lab group are in `roster.json` in the private
+quiz-results repo and appear under **Lab groups** in 04 Results only after the
+teacher code (3016) and the Worker's `TEACHER_CODE` (step 9 of `worker.js`).
+
 ## Results storage (teacher)
 
 Attempts are sent to the private

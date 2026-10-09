@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.15.4 — 2026-10-09 19:05 (Lisbon)
+  Quizzes Machine 1.16.0 — 2026-10-09 19:12 (Lisbon)
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -32,11 +32,12 @@ header{position:sticky;top:0;z-index:40;background:rgba(255,255,255,.94);backdro
 .brand{display:flex;align-items:baseline;gap:9px;flex:0 0 auto}
 .brand b{font-size:15px;font-weight:650;letter-spacing:-0.015em}
 .brand span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em}
-.langsel{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;flex:0 0 auto;margin-left:auto}
-.langsel button{font:inherit;font-size:11.5px;font-weight:600;letter-spacing:.03em;padding:4px 11px;border:none;background:#fff;color:var(--muted);cursor:pointer;border-right:1px solid var(--line2)}
-.langsel button:last-child{border-right:none}
-.langsel button:hover{color:var(--ink);background:var(--wash)}
-.langsel button[aria-pressed="true"]{background:var(--ink);color:#fff}
+.langsel,.kindsel{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;flex:0 0 auto;margin-left:auto}
+.langsel button,.kindsel button{font:inherit;font-size:11.5px;font-weight:600;letter-spacing:.03em;padding:4px 11px;border:none;background:#fff;color:var(--muted);cursor:pointer;border-right:1px solid var(--line2)}
+.langsel button:last-child,.kindsel button:last-child{border-right:none}
+.langsel button:hover,.kindsel button:hover{color:var(--ink);background:var(--wash)}
+.kindsel+.langsel{margin-left:8px}
+.langsel button[aria-pressed="true"],.kindsel button[aria-pressed="true"]{background:var(--ink);color:#fff}
 nav.tabs{border-bottom:1px solid var(--line);background:#fff}
 .tabs-inner{display:flex;gap:2px;padding:0 24px;max-width:1100px;margin:0 auto;overflow-x:auto}
 .tab{appearance:none;background:none;border:none;font:inherit;font-size:13px;color:var(--muted);padding:11px 14px;cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent;margin-bottom:-1px}
@@ -89,6 +90,9 @@ select:focus,input:focus{outline:2px solid #cfd8ea;outline-offset:0;border-color
 @media(max-width:820px){.g3,.g4{grid-template-columns:1fr 1fr}}
 .g2{grid-template-columns:repeat(2,minmax(0,1fr))}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
+.roster summary{cursor:pointer;font-weight:600;padding:6px 0}
+.roster h4{margin:12px 0 4px;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.roster ul{margin:0 0 6px;padding-left:18px}.roster li{margin:2px 0}
 .stat{border:1px solid var(--line);border-radius:9px;padding:13px 14px}
 .stat .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .stat .v{font-family:var(--mono);font-size:23px;font-weight:500;letter-spacing:-0.02em;margin-top:5px;color:var(--ink)}
@@ -163,6 +167,10 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
 <header>
   <div class="hbar">
     <div class="brand"><b>Quizzes Machine</b><span data-t="brandsub">Environmental Comfort &amp; Energy Efficiency</span></div>
+    <div class="kindsel" role="group" id="kindsel">
+      <button type="button" data-kind="theory" aria-pressed="true">Theoretical</button>
+      <button type="button" data-kind="lab" aria-pressed="false">LAB</button>
+    </div>
     <div class="langsel" role="group" aria-label="Language / Idioma">
       <button type="button" data-lang="pt" aria-pressed="false" title="Português">PT</button>
       <button type="button" data-lang="en" aria-pressed="true" title="English">EN</button>
@@ -175,7 +183,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.15.4 · 2026-10-09 19:05</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.16.0 · 2026-10-09 19:12</span></footer>
 </main>
 <script>
 "use strict";
@@ -210,7 +218,8 @@ pt:{
  netFail:"Falha de rede — tente de novo.",
  submitLink:"Ligação de envio", submitSet:"Guardar", submitSaved:"Ligação guardada.",
  submitP:"Cole aqui a ligação de envio dada pelo docente (uma vez por dispositivo).",
- grpArch:"Arquitetos", grpEng:"Engenheiros",
+ grpArch:"Arquitetos", grpEng:"Engenheiros", kindTheory:"Teórica", kindLab:"LAB", kindAria:"Tipo de sessão", labGroup:"Grupo de laboratório", nameFull:"Nome e apelido", nameFullPh:"Nome Apelido", needFull:"Indique o nome e o apelido.",
+ rosterH:"Grupos de laboratório", rosterStud:"alunos", rosterP:"Nomes do roster.json no repositório privado quiz-results (nunca no código da página). Para editar: GitHub > quiz-results > roster.json.", rosterNone:"Ainda não há roster.json no repositório quiz-results.", rosterBad:"O roster.json do quiz-results não é JSON válido.", rosterOld:"Para ver os grupos de laboratório, atualize o Worker: Cloudflare > quiz-results > Edit code > colar o worker.js atual > Deploy.",
  lockB:"Definições", codeL:"Código", unlockedMsg:"Desbloqueado — volte a bloquear antes da aula.",
  wrongCode:"Código incorreto.", triesLeft:"tentativas restantes.",
  lockedMsg:"Bloqueado após códigos errados — tente dentro de", minShort:"min.",
@@ -278,7 +287,8 @@ en:{
  netFail:"Network error — try again.",
  submitLink:"Submit link", submitSet:"Save", submitSaved:"Link saved.",
  submitP:"Paste here the submit link given by your teacher (once per device).",
- grpArch:"Architects", grpEng:"Engineers",
+ grpArch:"Architects", grpEng:"Engineers", kindTheory:"Theoretical", kindLab:"LAB", kindAria:"Session type", labGroup:"Lab group", nameFull:"First name and surname", nameFullPh:"First name Surname", needFull:"Enter your first name and surname.",
+ rosterH:"Lab groups", rosterStud:"students", rosterP:"Names from roster.json in the private quiz-results repository (never in the page code). To edit: GitHub > quiz-results > roster.json.", rosterNone:"No roster.json in the quiz-results repository yet.", rosterBad:"roster.json in quiz-results is not valid JSON.", rosterOld:"To see the lab groups, update the Worker: Cloudflare > quiz-results > Edit code > paste the current worker.js > Deploy.",
  lockB:"Settings", codeL:"Code", unlockedMsg:"Unlocked — re-lock before class.",
  wrongCode:"Wrong code.", triesLeft:"attempts left.",
  lockedMsg:"Locked after wrong codes — retry in", minShort:"min.",
@@ -411,6 +421,29 @@ function shuffle(a){
 function sampleIdx(n,k){ return shuffle([...Array(n).keys()]).slice(0,k); }
 function esc(s){ return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
 function fmtTime(s){ s=Math.max(0,Math.round(s)); const m=Math.floor(s/60); return m+":"+String(s%60).padStart(2,"0"); }
+/* LAB sessions: groups per track, "Group X - house type". Names are NOT here (public page): see roster.json in quiz-results. */
+const LAB_GROUPS = {
+  architects: [["A","Warmińska"],["B","Podhalańska"],["C","Lubelska"],["D","Mazurska"],["E","Dolnośląska"],["F","Łowicka"],["G","Lubuska"],["J","Kaszubska"]],
+  engineers:  [["A","Lubuska"],["B","Podlaska"],["C","Kurpiowska"],["D","Lubelska"],["E","Krakowska"],["F","Kielecka"]]
+};
+const TRACK_EN = {architects:"Architects", engineers:"Engineers"}; // stored values stay in English whatever the page language
+const labName = (letter, house) => `Group ${letter}` + (house ? ` - ${house}` : "");
+const labValue = (track, letter, house) => `${TRACK_EN[track]} · ${labName(letter, house)}`;
+let KIND = (()=>{ // "theory" | "lab": ?type=lab|theory link, else this device's last choice
+  const q=new URLSearchParams(location.search).get("type");
+  if(q==="lab"||q==="theory") return q;
+  try{ return localStorage.getItem("qm_kind")==="lab"?"lab":"theory"; }catch(e){ return "theory"; }
+})();
+function drawKind(){
+  const box=$("#kindsel"); box.setAttribute("aria-label",t("kindAria"));
+  box.querySelectorAll("button").forEach(b=>{ b.textContent=t(b.dataset.kind==="lab"?"kindLab":"kindTheory"); b.setAttribute("aria-pressed",String(b.dataset.kind===KIND)); });
+}
+function setKind(k){
+  const nm=$("#c-name")?$("#c-name").value:""; // keep a name already typed on the start screen
+  KIND=k; try{ localStorage.setItem("qm_kind",k); }catch(e){}
+  drawKind(); renderPage();
+  const inp=$("#c-name"); if(inp && nm){ inp.value=nm; inp.dispatchEvent(new Event("input")); }
+}
 function grpLabel(v){ return v==="architects"?t("grpArch"):v==="engineers"?t("grpEng"):v||""; }
 
 /* ---------- tabs ---------- */
@@ -453,7 +486,12 @@ function renderQuiz(){
     const wantN = (Q && Q.done) ? Q.n : DEF.n;
     const selN = validN.includes(wantN) ? wantN : validN[validN.length-1];
     const selM = (Q && Q.done && Q.mins) ? Q.mins : DEF.mins;
-    const selG = (Q && Q.done) ? (Q.klass||"") : DEF.group;
+    let lastLab=""; try{ lastLab=localStorage.getItem("qm_lab")||""; }catch(e){}
+    const selG = (Q && Q.done) ? (Q.klass||"") : KIND==="lab" ? lastLab : DEF.group;
+    const LAB = KIND==="lab";
+    const grpSel = LAB
+      ? `<select id="c-klass"><option value="">—</option>${["architects","engineers"].map(tr=>`<optgroup label="${esc(t(tr==="architects"?"grpArch":"grpEng"))}">${LAB_GROUPS[tr].map(([L,h])=>{ const v=labValue(tr,L,h); return `<option value="${esc(v)}"${v===selG?" selected":""}>${esc(labName(L,h))}</option>`; }).join("")}</optgroup>`).join("")}</select>`
+      : `<select id="c-klass"><option value="">—</option><option value="architects"${selG==="architects"?" selected":""}>${esc(t("grpArch"))}</option><option value="engineers"${selG==="engineers"?" selected":""}>${esc(t("grpEng"))}</option></select>`;
     el.innerHTML = `
       <div class="pagehead"><h2>${esc(t("quizH"))}</h2><p>${esc(t("quizP"))}</p></div>
       <div class="controls">
@@ -462,8 +500,8 @@ function renderQuiz(){
         <span class="ctl"><label>${esc(t("bank"))}</label><select id="c-lesson"${lockL?" disabled":""}>${lessonOptions(defLesson)}</select></span>
         <span class="ctl"><label>${esc(t("nq"))}</label>
           <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===selN?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
-        <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
-        <span class="ctl"><label>${esc(t("klass"))}</label><select id="c-klass"><option value="">—</option><option value="architects"${selG==="architects"?" selected":""}>${esc(t("grpArch"))}</option><option value="engineers"${selG==="engineers"?" selected":""}>${esc(t("grpEng"))}</option></select></span>
+        <span class="ctl"><label>${esc(t(LAB?"nameFull":"name"))}</label><input type="text" id="c-name" placeholder="${LAB?esc(t("nameFullPh")):"—"}"></span>
+        <span class="ctl"><label>${esc(t(LAB?"labGroup":"klass"))}</label>${grpSel}</span>
         <label class="chk"><input type="checkbox" id="c-sq" checked> ${esc(t("shufQ"))}</label>
         <label class="chk"><input type="checkbox" id="c-so" checked> ${esc(t("shufO"))}</label>
         <label class="chk"><input type="checkbox" id="c-ob" checked> ${esc(t("oneBy"))}</label>
@@ -486,9 +524,10 @@ function renderQuiz(){
     $("#c-code").onkeydown = e => { if(e.key==="Enter") tryCode(); };
     if(UNLOCKED){ $("#c-lockmsg").textContent=t("unlockedMsg"); }
     $("#c-start").onclick = ()=>{
-      const nm=$("#c-name").value.trim(), kg=$("#c-klass").value;
+      const nm=$("#c-name").value.trim().replace(/\s+/g," "), kg=$("#c-klass").value;
       if(!nm || !kg){ $("#c-warn").textContent=t("needId"); return; }
-      try{ localStorage.setItem("qm_name",nm); localStorage.setItem("qm_group",kg); }catch(e){}
+      if(LAB && !fullName(nm)){ $("#c-warn").textContent=t("needFull"); $("#c-name").focus(); return; }
+      try{ localStorage.setItem("qm_name",nm); localStorage.setItem("qm_group",kg); if(LAB) localStorage.setItem("qm_lab",kg); }catch(e){}
       if(DEF.mode==="quiz"){ startQuiz(); return; }
       // an attempt in progress, or a finished one of the same lecture, is resumed (restart = teacher code)
       if(!S || (S.done && S.lesson!==LESSON_SEL)) startSession(nm,kg);
@@ -503,11 +542,13 @@ function renderQuiz(){
     };
     const gate=()=>{ $("#c-start").disabled = !($("#c-name").value.trim() && $("#c-klass").value); $("#c-warn").textContent=""; };
     $("#c-name").oninput=gate; $("#c-klass").oninput=gate; gate();
+    if(LAB) $("#c-name").onchange=()=>{ const v=$("#c-name").value.trim(); if(v && !fullName(v)) $("#c-warn").textContent=t("needFull"); };
     if(Q && Q.done) renderResult($("#q-result"));
   } else {
     renderAttempt(el);
   }
 }
+const fullName = v => /\S+\s+\S+/.test(v); // LAB: first name and surname
 function startQuiz(){
   const nm=$("#c-name").value.trim(), kg=$("#c-klass").value;
   if(!nm || !kg){
@@ -1104,7 +1145,7 @@ function renderRes(){
         <button class="btn" id="e-cls">${esc(t("clsGo"))}</button>
         ${tcodeLoad()?`<button class="btn" id="e-tforget">${esc(t("tcForget"))}</button>`:""}
         <span class="hint" id="e-clsmsg"></span>
-      </div><div id="e-clsout"></div></div></div>`)+
+      </div><div id="e-roster"></div><div id="e-clsout"></div></div></div>`)+
     (all.length?`<div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("thisDev"))}</h3></div></div><div class="tbl-scroll"><table class="data">
       <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
       <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(grpLabel(r.klass)||"—")}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
@@ -1161,7 +1202,7 @@ async function fetchClass(){ // records, or null with the reason shown
     if(!r.ok || !j.ok || !Array.isArray(j.records)){ msg.textContent=`${t("clsFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`; return null; }
     const isNew=tcodeLoad()!==TRCODE; tcodeKeep(true);
     msg.textContent=(j.records.length?`${j.records.length} ${t(j.records.length===1?"clsCount1":"clsCount")}`:t("clsNone"))+(j.truncated?` ${t("clsTrunc")}`:"")+(isNew?` · ${t("tcKept")}`:"");
-    CLS={records:j.records, filter:CLS?CLS.filter:""};
+    CLS={records:j.records, filter:CLS?CLS.filter:"", roster:("roster" in j)?j.roster:undefined, rosterError:j.rosterError||""};
     return j.records;
   }catch(e){ msg.textContent=await workerDiag(url); return null; }
 }
@@ -1197,7 +1238,26 @@ async function classCSV(){ // always a fresh list; also refreshes the table on s
   }
   if($("#e-cls")) $("#e-cls").disabled=false;
 }
-function drawClass(){ // list on screen without student names (names only in the CSV): find a score by attempt code
+let ROSTER_OPEN = false;
+function drawRoster(){ // lab groups with names: shown only once the Worker accepted the teacher code
+  const out=$("#e-roster"); if(!out) return;
+  if(!CLS){ out.innerHTML=""; return; }
+  if(CLS.roster===undefined){ out.innerHTML=`<p class="hint" style="margin:10px 0 0">${esc(t("rosterOld"))}</p>`; return; }
+  if(!CLS.roster){ out.innerHTML=`<p class="hint" style="margin:10px 0 0">${esc(t(CLS.rosterError?"rosterBad":"rosterNone"))}</p>`; return; }
+  const R=CLS.roster, house=(tr,L)=>((LAB_GROUPS[tr]||[]).find(g=>g[0]===L)||[])[1]||"";
+  let total=0;
+  const col=tr=>{
+    const groups=Object.keys(R[tr]||{}).sort();
+    return `<div><h4>${esc(t(tr==="architects"?"grpArch":"grpEng"))}</h4>${groups.map(L=>{ const names=R[tr][L]||[]; total+=names.length;
+      return `<div><b>${esc(labName(L,house(tr,L)))}</b><ul>${names.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></div>`; }).join("")}</div>`;
+  };
+  const cols=col("architects")+col("engineers");
+  out.innerHTML=`<details class="roster" style="margin:12px 0 0"${ROSTER_OPEN?" open":""}><summary>${esc(t("rosterH"))} · ${total} ${esc(t("rosterStud"))}</summary>
+    <p class="hint" style="margin:4px 0 0">${esc(t("rosterP"))}</p><div class="grid g2">${cols}</div></details>`;
+  out.querySelector("details").ontoggle=e=>{ ROSTER_OPEN=e.target.open; };
+}
+function drawClass(){
+  drawRoster(); // list on screen without student names (names only in the CSV): find a score by attempt code
   const out=$("#e-clsout"); if(!out) return;
   if(!CLS || !CLS.records.length){ out.innerHTML=""; return; }
   const classes=[...new Set(CLS.records.map(r=>r.class).filter(Boolean))].sort();
@@ -1232,9 +1292,10 @@ function setLang(l){
   document.documentElement.lang=l;
   document.querySelectorAll(".langsel button").forEach(b=>b.setAttribute("aria-pressed", String(b.dataset.lang===l)));
   document.querySelectorAll("[data-t]").forEach(n=>{ const k=n.getAttribute("data-t"); if(STR[l][k]!==undefined) n.textContent=STR[l][k]; });
-  P._lang=l; renderTabs(); renderPage();
+  P._lang=l; drawKind(); renderTabs(); renderPage();
 }
 document.querySelectorAll(".langsel button").forEach(b=>b.onclick=()=>setLang(b.dataset.lang));
+document.querySelectorAll(".kindsel button").forEach(b=>b.onclick=()=>setKind(b.dataset.kind));
 const ONLY_LANG = "en"; // 2026/27: English only, PT/EN switch hidden; set to "" to bring the switch back
 if(ONLY_LANG) $(".langsel").style.display="none";
 
