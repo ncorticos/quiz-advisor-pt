@@ -13,7 +13,8 @@
 //     Copy the token (ghp_/github_pat_...).
 //  2. Cloudflare: Workers & Pages > Create Worker > paste this file > Deploy.
 //  3. Worker > Settings > Variables: add secret GITHUB_TOKEN (the token),
-//     text CLASS_CODE (e.g. AULA1-OUT — announce it in class, change anytime),
+//     text CLASS_CODE (one code per class, comma-separated, e.g.
+//     AULA0,TURMAC,TURMAD — announce each class its own code),
 //     text REPO (e.g. ncorticos/quiz-results).
 //  4. Share with students: https://ncorticos.github.io/quiz-machine/?submit=<worker-url>
 //     (or they paste <worker-url> once in 04 Resultados > Ligação de envio).
@@ -52,7 +53,8 @@ export default {
     } catch {
       return json({ ok: false, error: "bad json" }, 400);
     }
-    if (!env.CLASS_CODE || b.code !== env.CLASS_CODE) {
+    const CODES = String(env.CLASS_CODE || "").split(",").map(s => s.trim()).filter(Boolean);
+    if (!CODES.length || !CODES.includes(b.code)) {
       return json({ ok: false, error: "code" }, 403);
     }
     const { id, name, klass, lesson, n, score, pct, secs, detail, date } = b;
@@ -69,6 +71,7 @@ export default {
     const record = {
       id,
       date: typeof date === "string" ? date.slice(0, 32) : new Date().toISOString(),
+      class: b.code,
       name: String(name || "").slice(0, 60),
       group: String(klass || "").slice(0, 60),
       bank: String(lesson || "").slice(0, 80),
