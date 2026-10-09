@@ -50,7 +50,9 @@ Teacher, 04 Results > unlock (3016) > Worker teacher code:
   open/close buttons (for every group at once), ✓ date, PDF download or link;
   hover ✓ to see who submitted.
 - **Lab groups** — student names per lab group from `roster.json` in the
-  private quiz-results repo (never in the page code).
+  private quiz-results repo (never in the page code). Students see the names
+  of the group they choose on the Submissions page ("Group members"), fetched
+  from the Worker at run time.
 
 Storage (private quiz-results repo): `lab/index.json` (open submissions and
 what each group handed in) and `lab/files/<track>-<letter>-s<n>.pdf`. The
