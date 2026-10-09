@@ -12,8 +12,13 @@ Same visual language as [Architecture Advisor](https://ncorticos.github.io/archi
 - **01 Questionário / Quiz** — each student gets a different random subset of
   questions with shuffled A–D options, optional timer, score + review,
   replay with new questions, CSV export.
-- **02 Projetor / Projector** — one random question at a time for use
-  alongside the lesson PPTX, no repeats until the bank is exhausted.
+- **02 Projetor / Projector** — after Proceed, each student answers N random
+  questions (20 by default, `?n=30|40|50`), one at a time: choosing an answer
+  moves to the next question; after the last one (or when time is up) the
+  student sees the score, without the correct answers, and the result is
+  sent to the teacher. A new attempt needs the teacher code (Request restart).
+  Opened directly, the tab shows one random question at a time for the room,
+  alongside the lesson PPTX, with no repeats until the bank is exhausted.
 - **03 Banco / Bank** — searchable teacher view of all questions + answers.
 - **04 Resultados / Results** — local history with full CSV export.
 
