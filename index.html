@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.15.3 — 2026-10-09 18:38 (Lisbon)
+  Quizzes Machine 1.15.4 — 2026-10-09 19:05 (Lisbon)
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -147,7 +147,6 @@ table.trtab td.num{width:auto}
 .tbar>i.g{background:linear-gradient(90deg,#65A30D,#84cc16)}
 .tbar>i.y{background:linear-gradient(90deg,#D97706,#f59e0b)}
 .tbar>i.r{background:linear-gradient(90deg,#DC2626,#f87171)}
-.tbar>i.q{background:linear-gradient(90deg,#1d4ed8,#3b82f6)}
 .bars{display:grid;gap:8px;margin:0 0 16px}
 .barrow{display:grid;grid-template-columns:130px 1fr 60px;align-items:center;gap:10px}
 .barrow .tbar{margin:0}
@@ -176,7 +175,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.15.3 · 2026-10-09 18:38</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.15.4 · 2026-10-09 19:05</span></footer>
 </main>
 <script>
 "use strict";
@@ -731,9 +730,11 @@ function pTick(){
   if(bar){ bar.style.width=(rem/total*100).toFixed(1)+"%"; bar.className=b; }
   const tl=$("#p-tleft"); if(tl) tl.textContent=fmtTime(rem);
 }
+// questions left: red for the first third of the answers, yellow for the second, green for the last
+function qBand(left,n){ const done=(n-left)/n; return done<1/3?"r":done<2/3?"y":"g"; }
 function qLeftDraw(){ // attempt: the "questions left" bar shrinks with every answer
   const left=S.n-Object.keys(S.ans).length, bar=$("#p-qbar"), v=$("#p-qleft");
-  if(bar) bar.style.width=(left/S.n*100).toFixed(1)+"%";
+  if(bar){ bar.style.width=(left/S.n*100).toFixed(1)+"%"; bar.className=qBand(left,S.n); }
   if(v) v.textContent=`${left}/${S.n}`;
 }
 function pTimeUp(){
@@ -767,7 +768,7 @@ function renderProj(){
       <span class="meta">${count}</span>
     </div>
     ${ended?"":sess?`<div class="bars">
-      <div class="barrow"><span class="bl">${esc(t("qLeft"))}</span><div class="tbar"><i id="p-qbar" class="q" style="width:${((S.n-Object.keys(S.ans).length)/S.n*100).toFixed(1)}%"></i></div><span class="bv" id="p-qleft">${S.n-Object.keys(S.ans).length}/${S.n}</span></div>
+      <div class="barrow"><span class="bl">${esc(t("qLeft"))}</span><div class="tbar"><i id="p-qbar" class="${qBand(S.n-Object.keys(S.ans).length,S.n)}" style="width:${((S.n-Object.keys(S.ans).length)/S.n*100).toFixed(1)}%"></i></div><span class="bv" id="p-qleft">${S.n-Object.keys(S.ans).length}/${S.n}</span></div>
       <div class="barrow"><span class="bl">${esc(t("tLeft"))}</span><div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div><span class="bv" id="p-tleft">${fmtTime(rem)}</span></div>
     </div>`:`<div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div>`}
     ${P.over?`<div class="overbanner">${esc(t("overT"))} — ${esc(t("overP"))}</div>`:""}
