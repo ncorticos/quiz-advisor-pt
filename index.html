@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.12.0 — 2026-10-09
+  Quizzes Machine 1.12.1 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -1049,8 +1049,8 @@ function renderRes(){
         <span class="hint" id="e-clsmsg"></span>
       </div></div></div>`)+
     (all.length?`<div class="panel"><div class="tbl-scroll"><table class="data">
-      <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("thName"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
-      <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(r.date)}</td><td>${esc(r.name||"—")}${r.klass?" · "+esc(grpLabel(r.klass)):""}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
+      <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
+      <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(r.date)}</td><td>${esc(grpLabel(r.klass)||"—")}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
     </table></div></div>`:`<p class="hint">${esc(t("empty"))}</p>`);
   $("#e-url").value=submitURL();
   if(!UNLOCKED){ $("#e-url").disabled=true; $("#e-save").disabled=true; }
