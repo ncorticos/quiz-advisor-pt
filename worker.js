@@ -35,7 +35,8 @@
 //     appears; "Download CSV" downloads every attempt stored in quiz-results.
 //  9. LAB sessions: names per lab group go in roster.json at the root of the private
 //     quiz-results repo, {"architects":{"A":["First Surname"]},"engineers":{...}}.
-//     They are shown under "Lab groups" with the class results, never in the page code.
+//     They are shown under "Lab groups" with the class results and, for the chosen group only,
+//     on the Submissions page (fetched from here at run time, never in the page code).
 // 10. LAB submissions (5 per lab group, PDF up to 10 MB or a link): nothing to set up.
 //     Files go to lab/files/, the list and the open/closed state to lab/index.json in
 //     quiz-results. Open or close each submission in 04 Results > Lab submissions.
@@ -427,17 +428,27 @@ async function putBase64Stream(env, path, message, req, len, sha) {
   return { res: await fetch(target, { method: "PUT", headers: ghHeaders(env), body: new Blob(parts) }) };
 }
 
-// Students: open submissions and what their group handed in (no names).
+async function readRoster(env) { // roster.json text, or null when missing/unreadable
+  try {
+    const r = await fetch(`${GH}/repos/${env.REPO}/contents/roster.json`, { headers: ghHeaders(env, "application/vnd.github.raw+json") });
+    return r.ok ? await r.text() : null;
+  } catch { return null; }
+}
+
+// Students: open submissions, what their group handed in (no submitter names) and the group's members
+// from roster.json, so they can check they chose the right group.
 async function labStatus(b, env) {
   if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
-  const { data } = await labIndex(env);
+  const [{ data }, rosterText] = await Promise.all([labIndex(env), readRoster(env)]);
+  const grp = labSlot(b.track, b.g, 1), roster = parseRoster(rosterText).roster;
+  const members = grp && roster ? roster[grp.track][grp.g] || [] : [];
   const subs = {};
   for (let k = 1; k <= LAB_N; k++) {
     const slot = labSlot(b.track, b.g, k);
     const e = slot && data.subs[slot.key];
     if (e) subs[k] = { date: e.date, kind: e.kind, file: e.file, size: e.size, link: e.link };
   }
-  return json({ ok: true, open: data.open, subs });
+  return json({ ok: true, open: data.open, subs, members });
 }
 
 // Teacher: open or close one submission for every group.
