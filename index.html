@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.9.0 — 2026-10-09
+  Quizzes Machine 1.9.2 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 554 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -105,6 +105,21 @@ table.data tbody tr:hover{background:var(--wash)}
 .proj-opt{font-size:17px;border:1px solid var(--line);border-radius:9px;padding:12px 16px;background:#fff}
 .proj-opt .L{font-family:var(--mono);font-size:12px;color:var(--muted);margin-right:10px}
 .proj-opt.reveal-ok{border-color:var(--good);background:var(--goodbg)}
+.nosel,.nosel *{user-select:none;-webkit-user-select:none}
+@media(max-width:640px){
+  .hbar{padding:8px 12px;gap:10px}
+  .brand b{font-size:13px}.brand span{font-size:9px}
+  main{padding:0 12px 30px}
+  .tabs-inner{padding:0 12px}
+  .proj-q{font-size:20px}
+  .proj-opt{font-size:15px;padding:10px 12px}
+  .opt{font-size:14px;padding:10px 12px}
+  .ptimer{font-size:18px}
+  .controls{gap:8px 10px}
+  .ctl{flex:1 1 100%}
+  select,input[type=text],input[type=password]{max-width:none;width:100%}
+  .stat .v{font-size:19px}
+}
 .hint{font-size:12px;color:var(--muted)}
 .ptimer{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-0.02em}
 .ptimer.g{color:#4d7c0f}.ptimer.y{color:#b45309}.ptimer.r{color:var(--bad)}
@@ -181,6 +196,7 @@ pt:{
  overP:"O ciclo está bloqueado. Peça ao professor para desbloquear e reiniciar.",
  reqAsk:"Pedir ao professor por email", reqSent:"Pedido pronto — envie o email e aguarde o professor.",
  profUn:"Desbloqueio do professor", noProf:"Email do professor não configurado neste link — chame o docente.",
+ needProf:"A revelação da resposta requer o código do professor.",
  bankLocked:"Banco bloqueado — introduza o código do professor para ver as perguntas e respostas."
 },
 en:{
@@ -222,11 +238,12 @@ en:{
  overP:"The cycle is locked. Ask your teacher to unlock and restart it.",
  reqAsk:"Ask teacher by email", reqSent:"Request ready — send the email and wait for your teacher.",
  profUn:"Teacher unlock", noProf:"Teacher email not set in this link — call your teacher.",
+ needProf:"Revealing the answer requires the teacher code.",
  bankLocked:"Bank locked — enter the teacher code to see the questions and answers."
 }};
 const LESSON = {
-pt:{aula0:"Aula 0 — Conhecimento e Investigação Científica",aula1:"Aula 1 — Evolução do Clima",aula2:"Aula 2 — Análise Climática",aula3:"Aula 3 — Arquitetura Bioclimática"},
-en:{aula0:"Lecture 0 — Knowledge & Scientific Research",aula1:"Lecture 1 — Climate Evolution",aula2:"Lecture 2 — Climate Analysis",aula3:"Lecture 3 — Bioclimatic Architecture"}};
+pt:{aula0:"Aula 00 — Conhecimento e Investigação Científica",aula1:"Aula 01 — Evolução do Clima",aula2:"Aula 02 — Análise Climática",aula3:"Aula 03 — Arquitetura Bioclimática"},
+en:{aula0:"Lecture00 — Knowledge & Scientific Research",aula1:"Lecture01 — Climate Evolution",aula2:"Lecture02 — Climate Analysis",aula3:"Lecture03 — Bioclimatic Architecture"}};
 let LANG = "pt";
 const $ = s => document.querySelector(s);
 const t = k => STR[LANG][k];
@@ -566,9 +583,10 @@ function profEmail(){
   }catch(e){ return BAKED_PROF || ""; }
 }
 /* ---------- projector (timed session, restart locked behind professor) ---------- */
-let P = {lesson:"aula0", deck:[], pos:-1, show:false, endsAt:0, over:false};
+let P = {lesson:"aula0", deck:[], pos:-1, show:false, endsAt:0, over:false, wantReveal:false};
 function projReshuffle(full){
   if(full!==false){ P.endsAt=0; P.over=false; if(window._ptT){clearInterval(window._ptT);window._ptT=null;} }
+  P.wantReveal=false;
   const bank = currentBank(P.lesson);
   P.deck = shuffle([...Array(bank.length).keys()]);
   P.pos = -1; P.show = false;
@@ -608,7 +626,7 @@ function renderProj(){
     </div>
     <div class="tbar"><i id="p-bar" class="${b}" style="width:${P.endsAt?(rem/total*100).toFixed(1):100}%"></i></div>
     ${P.over?`<div class="overbanner">${esc(t("overT"))} — ${esc(t("overP"))}</div>`:""}
-    <div class="panel"><div class="panel-body" id="p-card"></div></div>
+    <div class="panel"><div class="panel-body nosel" id="p-card"></div></div>
     <div class="reqpanel" id="p-req" style="display:none">
       <div class="qnav" style="margin-top:0">
         <a class="btn solid" id="p-mail" href="#">${esc(t("reqAsk"))}</a>
@@ -627,7 +645,15 @@ function renderProj(){
     else $("#p-msg").textContent="";
     P.show=false; renderProj();
   };
-  $("#p-rev").onclick=()=>{ if(P.over) return; P.show=!P.show; renderProj(); };
+  $("#p-rev").onclick=()=>{
+    if(P.over) return;
+    if(P.show){ P.show=false; renderProj(); return; }
+    P.wantReveal=true;
+    const r=$("#p-req");
+    if(r.style.display==="none"){ r.style.display="block"; }
+    $("#p-reqmsg").textContent=t("needProf");
+    const c=$("#p-code"); if(c) c.focus();
+  };
   $("#p-reqb").onclick=()=>{
     const r=$("#p-req");
     r.style.display = r.style.display==="none" ? "block" : "none";
@@ -656,7 +682,10 @@ ${location.href.split("?")[0]}`;
       msg.textContent=`${t("lockedMsg")} ${Math.floor(r/60000)}:${String(Math.floor(r%60000/1000)).padStart(2,"0")} ${t("minShort")}`;
       return;
     }
-    if(inp.value===SETTINGS_CODE){ lockSave({f:0,u:0}); projReshuffle(); renderProj(); return; }
+    if(inp.value===SETTINGS_CODE){ lockSave({f:0,u:0});
+      if(P.wantReveal){ P.wantReveal=false; P.show=true; renderProj(); }
+      else { projReshuffle(); renderProj(); }
+      return; }
     info.f=(info.f||0)+1;
     if(info.f===3) info.u=now+5*60*1000;
     else if(info.f===4) info.u=now+10*60*1000;
