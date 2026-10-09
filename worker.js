@@ -35,7 +35,8 @@
 //     appears; "Download CSV" downloads every attempt stored in quiz-results.
 //  9. LAB groups and their members (first name and surname) are in the page itself
 //     (LAB_GROUPS in index.html); nothing to set up here.
-// 10. LAB submissions (5 per lab group, PDF up to 10 MB or a link): nothing to set up.
+// 10. LAB submissions (5 per lab group, PDF up to 10 MB or a link) and the teacher's
+//     0–5 points per group and submission: nothing to set up.
 //     Files go to lab/files/, the list and the open/closed state to lab/index.json in
 //     quiz-results. Open or close each submission in 04 Results > Lab submissions.
 
@@ -226,10 +227,10 @@ async function handle(req, env) {
   if (b && b.action === "translate") return translate(b, env);
   if (b && b.action === "results") return classResults(b, env);
   if (b && b.action === "labstatus") return labStatus(b, env);
-  if (b && (b.action === "labopen" || b.action === "labfile")) {
+  if (b && (b.action === "labopen" || b.action === "labfile" || b.action === "labpoints")) {
     if (!env.TEACHER_CODE) return json({ ok: false, error: "code", detail: "TEACHER_CODE not set" }, 403);
     if (b.code !== env.TEACHER_CODE) return json({ ok: false, error: "code" }, 403);
-    return b.action === "labopen" ? labOpen(b, env) : labFile(b, env);
+    return b.action === "labopen" ? labOpen(b, env) : b.action === "labpoints" ? labPoints(b, env) : labFile(b, env);
   }
   const CODES = String(env.CLASS_CODE || "").split(",").map(s => s.trim()).filter(Boolean);
   if (!CODES.length || !CODES.includes(b.code)) {
@@ -286,11 +287,13 @@ async function handle(req, env) {
 }
 
 // ---------- LAB submissions: 5 per lab group, a PDF (≤ 10 MB) or a link ----------
-// lab/index.json {"open":[1,3], "subs":{"engineers-C-s2":{name,date,kind:"pdf"|"link",file,size,link}}}
+// lab/index.json {"open":[1,3], "subs":{"engineers-C-s2":{name,date,kind:"pdf"|"link",file,size,link}},
+//                 "pts":{"engineers-C-s2":3.5}}   (points: teacher only, never in labstatus)
 // lab/files/engineers-C-s2.pdf  (replaced on a new submission; git history keeps the earlier ones)
 const LAB_N = 5;
 const LAB_MAX = 10 * 1024 * 1024; // PDF bytes
 const LAB_MAX_B64 = Math.ceil(LAB_MAX / 3) * 4;
+const LAB_PTS_MAX = 5; // points per group and submission, 0–5
 const TRACKS = ["architects", "engineers"];
 const labSlot = (track, g, k) => {
   k = Number(k);
@@ -301,13 +304,17 @@ const labReady = (env) => env.GITHUB_TOKEN && String(env.REPO).includes("/");
 
 async function labIndex(env) { // {data, sha}; no file yet = nothing open, nothing submitted
   const r = await fetch(`${GH}/repos/${env.REPO}/contents/lab/index.json`, { headers: ghHeaders(env) });
-  if (r.status === 404) return { data: { open: [], subs: {} }, sha: undefined };
+  if (r.status === 404) return { data: { open: [], subs: {}, pts: {} }, sha: undefined };
   if (!r.ok) throw new Error(`github ${r.status}`);
   const j = await r.json();
   let d = {};
   try { d = JSON.parse(b64decode(j.content)); } catch { /* start clean */ }
   const open = (Array.isArray(d.open) ? d.open : []).map(Number).filter((k) => Number.isInteger(k) && k >= 1 && k <= LAB_N);
-  return { data: { open: [...new Set(open)].sort(), subs: d.subs && typeof d.subs === "object" ? d.subs : {} }, sha: j.sha };
+  const pts = {}; // kept on every rewrite of the index (submissions, open/close)
+  for (const [k, v] of Object.entries(d.pts && typeof d.pts === "object" ? d.pts : {})) {
+    if (/^(architects|engineers)-[A-Z]-s[1-9]$/.test(k) && typeof v === "number" && v >= 0 && v <= LAB_PTS_MAX) pts[k] = v;
+  }
+  return { data: { open: [...new Set(open)].sort(), subs: d.subs && typeof d.subs === "object" ? d.subs : {}, pts }, sha: j.sha };
 }
 
 // Read-modify-write of the index; retried when another submission changed it in between (409/422).
@@ -421,6 +428,20 @@ async function labOpen(b, env) {
   if (!Number.isInteger(k) || k < 1 || k > LAB_N) return json({ ok: false, error: "shape" }, 400);
   const lab = await labIndexUpdate(env, `lab submission ${k} ${b.open ? "opened" : "closed"}`, (d) => {
     d.open = b.open ? [...new Set([...d.open, k])].sort() : d.open.filter((x) => x !== k);
+  });
+  return json({ ok: true, lab });
+}
+
+// Teacher: points (0–5, two decimals at most) for one group and submission; null clears them.
+async function labPoints(b, env) {
+  if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
+  const slot = labSlot(b.track, b.g, b.k);
+  if (!slot) return json({ ok: false, error: "shape" }, 400);
+  let v = b.points === null || b.points === "" || b.points === undefined ? null : Number(b.points);
+  if (v !== null && !(Number.isFinite(v) && v >= 0 && v <= LAB_PTS_MAX)) return json({ ok: false, error: "points" }, 400);
+  if (v !== null) v = Math.round(v * 100) / 100;
+  const lab = await labIndexUpdate(env, `lab points ${slot.key} ${v === null ? "cleared" : v}`, (d) => {
+    if (v === null) delete d.pts[slot.key]; else d.pts[slot.key] = v;
   });
   return json({ ok: true, lab });
 }
