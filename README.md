@@ -12,8 +12,9 @@ Same visual language as [Architecture Advisor](https://ncorticos.github.io/archi
 - **01 Questionário / Quiz** — each student gets a different random subset of
   questions with shuffled A–D options, optional timer, score + review,
   replay with new questions, CSV export.
-- **02 Projetor / Projector** — after Proceed, each student answers N random
-  questions (20 by default, `?n=30|40|50`), one at a time: choosing an answer
+- **02 Projetor / Projector** — students choose the lecture on the start
+  screen (a `?lesson=aula0…3` link fixes it); after Proceed, each student
+  answers N random questions (20 by default, `?n=30|40|50`), one at a time: choosing an answer
   moves to the next question; after the last one (or when time is up) the
   student sees the score, without the correct answers, and the result is
   sent to the teacher. A new attempt needs the teacher code (Request restart).
