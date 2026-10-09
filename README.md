@@ -50,6 +50,10 @@ Teacher, 04 Results > unlock (3016) > Worker teacher code:
   open/close buttons (for every group at once), ✓ date, PDF download or link.
 - **Lab groups** — every lab group with its members.
 
+Lab professor (`LAB_PROF` in `index.html`): Maja Sutkowska for the Architects
+groups, Nuno Dinis Cortiços for the Engineers groups; the Submissions page shows
+the one of the chosen group.
+
 The members (first name and surname only) are in `LAB_GROUPS` in `index.html`,
 so they show as soon as a group is chosen, even without the Worker. They are
 **public**: anyone who opens the page or this repository can read them (the
