@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.12.3 — 2026-10-09
+  Quizzes Machine 1.12.4 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -167,7 +167,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.12.4</span></footer>
 </main>
 <script>
 "use strict";
@@ -230,6 +230,8 @@ pt:{
  trSaved:"bank-pt.json descarregado — carregue-o na raiz do repositório quiz-machine.",
  projDone:"Respondeu a todas as perguntas.", answered:"Respondidas",
  srvFail:"O Worker não conseguiu guardar o resultado — mostre esta mensagem ao docente",
+ wkCrash:"O Worker responde, mas falhou ao guardar. Docente: cole de novo o worker.js mais recente no Cloudflare e veja os Logs do Worker.",
+ wkDown:"Sem resposta do Worker de resultados (verifique a ligação à Internet). Docente: confirme que o worker.js do quiz está publicado em",
  resLocked:"Exportar e apagar requerem o código do docente.",
  clsH:"Resultados da turma", clsGo:"Resultados da turma (CSV)", clsBusy:"A carregar…",
  clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results), num único CSV com a coluna da turma (código).",
@@ -293,6 +295,8 @@ en:{
  trSaved:"bank-pt.json downloaded — upload it to the root of the quiz-machine repository.",
  projDone:"You have answered all the questions.", answered:"Answered",
  srvFail:"The Worker could not save the result — show this message to your teacher",
+ wkCrash:"The Worker answers but failed while saving. Teacher: re-paste the latest worker.js in Cloudflare and check the Worker's Logs.",
+ wkDown:"No answer from the results Worker (check the internet connection). Teacher: check that the quiz worker.js is deployed at",
  resLocked:"Exporting and clearing need the teacher code.",
  clsH:"Class results", clsGo:"Class results (CSV)", clsBusy:"Loading…",
  clsP:"Every attempt your students sent to the Worker (private quiz-results repository), in one CSV with a class (code) column.",
@@ -636,11 +640,20 @@ async function sendResult(A,pre,onSent){ // pre: id prefix of the send controls 
     if(r.status===403){ msg.textContent=t("badCode"); btn.disabled=false; btn.textContent=t("send"); return; }
     if(!r.ok){ // the Worker answered but could not save: show its reason (e.g. "502 github" = token/REPO)
       const j=await r.json().catch(()=>({}));
-      msg.textContent=`${t("srvFail")} (${r.status}${j.error?" "+j.error:""})`; btn.disabled=false; btn.textContent=t("send"); return;
+      msg.textContent=`${t("srvFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`; btn.disabled=false; btn.textContent=t("send"); return;
     }
     try{localStorage.setItem("qa_sent_"+A.id,"1");}catch(e){}
     onSent();
-  }catch(e){ msg.textContent=t("netFail"); btn.disabled=false; btn.textContent=t("send"); }
+  }catch(e){ msg.textContent=t("sending"); msg.textContent=await workerDiag(submitURL()); btn.disabled=false; btn.textContent=t("send"); }
+}
+// The POST got no readable answer: ask the Worker with a plain GET to tell "offline / wrong code deployed"
+// from "quiz Worker deployed but it crashed" (our worker.js answers GET with {"error":"POST only"} + CORS).
+async function workerDiag(url){
+  try{
+    const r=await fetch(url); const j=await r.json();
+    if(j && j.error==="POST only") return t("wkCrash");
+  }catch(e){}
+  return `${t("wkDown")} ${url}`;
 }
 
 const BAKED_PROF = ""; // replaced at build; teacher address for restart requests (or ?prof= link)
@@ -1110,7 +1123,7 @@ async function classCSV(){ // every attempt sent to the Worker (private quiz-res
       downloadCSV(rows, "quiz-class-results-"+new Date().toISOString().slice(0,10)+".csv", true);
       msg.textContent=`${rows.length} ${t("clsDone")}`+(j.truncated?` ${t("clsTrunc")}`:"");
     }
-  }catch(e){ msg.textContent=t("netFail"); }
+  }catch(e){ msg.textContent=await workerDiag(url); }
   btn.disabled=false;
 }
 
