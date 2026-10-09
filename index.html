@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.15.0 — 2026-10-09
+  Quizzes Machine 1.15.1 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -174,7 +174,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.15.0</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.15.1</span></footer>
 </main>
 <script>
 "use strict";
@@ -245,6 +245,7 @@ pt:{
  clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results). A lista mostra código da turma, grupo, código da tentativa e nota, sem nomes; os nomes só aparecem no CSV.",
  clsDone:"tentativas descarregadas.", clsNone:"Ainda não há tentativas guardadas no Worker.",
  clsTrunc:"Apenas as primeiras 40 (o Worker não conseguiu ler a pasta inteira de uma vez).",
+ tcKept:"código guardado neste dispositivo (use Esquecer em computadores partilhados)", tcForget:"Esquecer código", tcForgot:"Código do Worker esquecido neste dispositivo.",
  clsSetup:"O Worker não tem a configuração de resultados (GITHUB_TOKEN / REPO).", clsFail:"Erro do Worker — tente de novo."
 },
 en:{
@@ -311,6 +312,7 @@ en:{
  clsP:"Every attempt your students sent to the Worker (private quiz-results repository). The list shows class code, group, attempt code and score, without names; names appear only in the CSV.",
  clsDone:"attempts downloaded.", clsNone:"No attempts stored in the Worker yet.",
  clsTrunc:"First 40 only (the Worker could not read the whole folder at once).",
+ tcKept:"code remembered on this device (use Forget on shared computers)", tcForget:"Forget code", tcForgot:"Worker code forgotten on this device.",
  clsSetup:"The Worker has no results setup (GITHUB_TOKEN / REPO).", clsFail:"Worker error — try again."
 }};
 const LESSON = {
@@ -958,7 +960,10 @@ function renderBank(filter){
 /* ---------- Portuguese translation with Gemma (teacher, through the Worker) ---------- */
 // The Worker (worker.js, action "translate") holds the model; the page never sees a key.
 // Output: bank-pt.json in the repo root, loaded at start-up as the PT bank (answer key from EN).
-let TRS = {}, TRCODE = "", PTX = {}, TRMODEL = "";
+// Worker teacher code: remembered on this device once it has worked (the teacher's own computer), until Forget.
+function tcodeLoad(){ try{ return localStorage.getItem("qm_tcode")||""; }catch(e){ return ""; } }
+function tcodeKeep(ok){ try{ if(ok) localStorage.setItem("qm_tcode",TRCODE); else localStorage.removeItem("qm_tcode"); }catch(e){} }
+let TRS = {}, TRCODE = tcodeLoad(), PTX = {}, TRMODEL = "";
 function ptItemOK(it,src){ return it && typeof it.q==="string" && it.q.trim() && Array.isArray(it.opts) && it.opts.length===4 &&
   it.opts.every(o=>typeof o==="string" && o.trim()) && it.a===src.a; }
 function trSay(s){ const m=$("#b-trmsg"); if(m) m.textContent=s; }
@@ -998,8 +1003,8 @@ async function runTranslate(bk){
       try{
         const r=await toWorker(url,{action:"translate", code:TRCODE, items:batch.map(s=>({q:s.q,opts:s.opts}))});
         const j=await r.json().catch(()=>({}));
-        if(r.status===403){ err=t("trBadCode"); break; }
-        if(r.ok && j.ok && Array.isArray(j.items) && j.items.length===batch.length){ res=j.items; TRMODEL=j.model||TRMODEL; }
+        if(r.status===403){ err=t("trBadCode"); tcodeKeep(false); break; }
+        if(r.ok && j.ok && Array.isArray(j.items) && j.items.length===batch.length){ res=j.items; TRMODEL=j.model||TRMODEL; tcodeKeep(true); }
         else if(j.error) err=`${t("trFail")} (${j.error})`;
       }catch(e){ err=t("netFail"); }
     }
@@ -1093,6 +1098,7 @@ function renderRes(){
         <span class="ctl"><label>${esc(t("trCode"))}</label><input type="password" id="e-tcode" style="width:130px" autocomplete="off"></span>
         <button class="btn solid" id="e-clsshow">${esc(t("clsShow"))}</button>
         <button class="btn" id="e-cls">${esc(t("clsGo"))}</button>
+        ${tcodeLoad()?`<button class="btn" id="e-tforget">${esc(t("tcForget"))}</button>`:""}
         <span class="hint" id="e-clsmsg"></span>
       </div><div id="e-clsout"></div></div></div>`)+
     (all.length?`<div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("thisDev"))}</h3></div></div><div class="tbl-scroll"><table class="data">
@@ -1114,7 +1120,10 @@ function renderRes(){
   $("#e-tcode").onkeydown=e=>{ if(e.key==="Enter") showClass(); };
   $("#e-clsshow").onclick=showClass;
   $("#e-cls").onclick=classCSV;
+  if($("#e-tforget")) $("#e-tforget").onclick=()=>{ tcodeKeep(false); TRCODE=""; CLS=null; renderRes(); $("#e-clsmsg").textContent=t("tcForgot"); };
   drawClass();
+  // remembered code: the list loads by itself once per page load, right after 3016
+  if(!CLS && TRCODE && tcodeLoad()===TRCODE && !window._clsAuto){ window._clsAuto=true; showClass(); }
   if(all.length){
     $("#e-all").onclick=()=>downloadCSV(loadRes(),"quiz-results.csv");
     $("#e-clear").onclick=()=>{localStorage.removeItem(LSKEY); renderRes();};
@@ -1143,10 +1152,11 @@ async function fetchClass(){ // records, or null with the reason shown
   try{
     const r=await toWorker(url,{action:"results",code:TRCODE});
     const j=await r.json().catch(()=>({}));
-    if(r.status===403){ msg.textContent=t("trBadCode"); return null; }
+    if(r.status===403){ msg.textContent=t("trBadCode"); tcodeKeep(false); return null; }
     if(j.error==="setup"){ msg.textContent=t("clsSetup"); return null; }
     if(!r.ok || !j.ok || !Array.isArray(j.records)){ msg.textContent=`${t("clsFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`; return null; }
-    msg.textContent=(j.records.length?`${j.records.length} ${t(j.records.length===1?"clsCount1":"clsCount")}`:t("clsNone"))+(j.truncated?` ${t("clsTrunc")}`:"");
+    const isNew=tcodeLoad()!==TRCODE; tcodeKeep(true);
+    msg.textContent=(j.records.length?`${j.records.length} ${t(j.records.length===1?"clsCount1":"clsCount")}`:t("clsNone"))+(j.truncated?` ${t("clsTrunc")}`:"")+(isNew?` · ${t("tcKept")}`:"");
     CLS={records:j.records, filter:CLS?CLS.filter:""};
     return j.records;
   }catch(e){ msg.textContent=await workerDiag(url); return null; }
