@@ -33,10 +33,8 @@
 //  8. In the quiz page: 04 Results > unlock with 3016 > type the Worker teacher code
 //     and press Enter: the list of attempts (with averages by lecture and by group)
 //     appears; "Download CSV" downloads every attempt stored in quiz-results.
-//  9. LAB sessions: names per lab group go in roster.json at the root of the private
-//     quiz-results repo, {"architects":{"A":["First Surname"]},"engineers":{...}}.
-//     They are shown under "Lab groups" with the class results and, for the chosen group only,
-//     on the Submissions page (fetched from here at run time, never in the page code).
+//  9. LAB groups and their members (first name and surname) are in the page itself
+//     (LAB_GROUPS in index.html); nothing to set up here.
 // 10. LAB submissions (5 per lab group, PDF up to 10 MB or a link): nothing to set up.
 //     Files go to lab/files/, the list and the open/closed state to lab/index.json in
 //     quiz-results. Open or close each submission in 04 Results > Lab submissions.
@@ -136,24 +134,6 @@ const pickRecord = (o) => o && typeof o === "object" && typeof o.id === "string"
 } : null;
 const parseRecord = (text) => { try { return pickRecord(JSON.parse(text)); } catch { return null; } };
 
-// roster.json (private quiz-results repo): {"architects": {"A": ["First Surname", ...]}, "engineers": {...}}.
-// Only names per lab group; the page holds the group letters and house types. Returned with the class results.
-function parseRoster(text) {
-  if (text == null) return { roster: null };
-  let o;
-  try { o = JSON.parse(text); } catch { return { roster: null, rosterError: "json" }; }
-  if (!o || typeof o !== "object") return { roster: null, rosterError: "json" };
-  const roster = {};
-  for (const track of ["architects", "engineers"]) {
-    const g = o[track] && typeof o[track] === "object" ? o[track] : {};
-    roster[track] = {};
-    for (const letter of Object.keys(g).filter((k) => /^[A-Z]$/.test(k))) {
-      roster[track][letter] = (Array.isArray(g[letter]) ? g[letter] : []).slice(0, 40).map((n) => String(n).slice(0, 80));
-    }
-  }
-  return { roster };
-}
-
 // Every attempt in quiz-results/results/: one GraphQL call for the whole folder, REST file by file as fallback.
 async function classResults(b, env) {
   if (!env.TEACHER_CODE) return json({ ok: false, error: "code", detail: "TEACHER_CODE not set" }, 403);
@@ -166,13 +146,13 @@ async function classResults(b, env) {
     "Content-Type": "application/json",
     "User-Agent": "quizzes-machine-worker",
   };
-  let records = null, truncated = false, rosterText; // rosterText: undefined = not read yet, null = no file
+  let records = null, truncated = false;
   try {
     const r = await fetch(`${GH}/graphql`, {
       method: "POST",
       headers,
       body: JSON.stringify({
-        query: `query($o:String!,$n:String!){repository(owner:$o,name:$n){object(expression:"HEAD:results"){... on Tree{entries{name object{... on Blob{text}}}}} roster:object(expression:"HEAD:roster.json"){... on Blob{text}}}}`,
+        query: `query($o:String!,$n:String!){repository(owner:$o,name:$n){object(expression:"HEAD:results"){... on Tree{entries{name object{... on Blob{text}}}}}}}`,
         variables: { o: owner, n: name },
       }),
     });
@@ -180,7 +160,6 @@ async function classResults(b, env) {
     if (r.ok && !j.errors && j.data && j.data.repository) {
       const entries = (j.data.repository.object && j.data.repository.object.entries) || []; // no folder yet = no results
       records = entries.filter((e) => e.name.endsWith(".json") && e.object && e.object.text).map((e) => parseRecord(e.object.text));
-      rosterText = (j.data.repository.roster && j.data.repository.roster.text) || null;
     }
   } catch { /* REST below */ }
   if (!records) {
@@ -198,16 +177,10 @@ async function classResults(b, env) {
       }));
     }
   }
-  if (rosterText === undefined) {
-    try {
-      const r = await fetch(`${GH}/repos/${env.REPO}/contents/roster.json`, { headers: { ...headers, Accept: "application/vnd.github.raw+json" } });
-      rosterText = r.ok ? await r.text() : null;
-    } catch { rosterText = null; }
-  }
   records = records.filter(Boolean).sort((a, b2) => a.date.localeCompare(b2.date));
   let lab = null;
   try { lab = (await labIndex(env)).data; } catch { /* list stays without lab submissions */ }
-  return json({ ok: true, n: records.length, truncated, records, ...parseRoster(rosterText), lab });
+  return json({ ok: true, n: records.length, truncated, records, lab });
 }
 
 // Settings as pasted in the dashboard, minus stray spaces/newlines (a newline in the token makes fetch throw)
@@ -428,27 +401,17 @@ async function putBase64Stream(env, path, message, req, len, sha) {
   return { res: await fetch(target, { method: "PUT", headers: ghHeaders(env), body: new Blob(parts) }) };
 }
 
-async function readRoster(env) { // roster.json text, or null when missing/unreadable
-  try {
-    const r = await fetch(`${GH}/repos/${env.REPO}/contents/roster.json`, { headers: ghHeaders(env, "application/vnd.github.raw+json") });
-    return r.ok ? await r.text() : null;
-  } catch { return null; }
-}
-
-// Students: open submissions, what their group handed in (no submitter names) and the group's members
-// from roster.json, so they can check they chose the right group.
+// Students: open submissions and what their group handed in.
 async function labStatus(b, env) {
   if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
-  const [{ data }, rosterText] = await Promise.all([labIndex(env), readRoster(env)]);
-  const grp = labSlot(b.track, b.g, 1), roster = parseRoster(rosterText).roster;
-  const members = grp && roster ? roster[grp.track][grp.g] || [] : [];
+  const { data } = await labIndex(env);
   const subs = {};
   for (let k = 1; k <= LAB_N; k++) {
     const slot = labSlot(b.track, b.g, k);
     const e = slot && data.subs[slot.key];
     if (e) subs[k] = { date: e.date, kind: e.kind, file: e.file, size: e.size, link: e.link };
   }
-  return json({ ok: true, open: data.open, subs, members });
+  return json({ ok: true, open: data.open, subs });
 }
 
 // Teacher: open or close one submission for every group.
