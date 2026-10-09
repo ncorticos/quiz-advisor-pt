@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.12.1 — 2026-10-09
+  Quizzes Machine 1.12.2 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -305,7 +305,7 @@ let LANG = "en";
 const $ = s => document.querySelector(s);
 const t = k => STR[LANG][k];
 const LETTERS = ["A","B","C","D"];
-const BAKED_SUBMIT = ""; // replaced at build; empty = use ?submit= link or Resultados-tab link
+const BAKED_SUBMIT = "https://quiz-results.ncorticos.workers.dev"; // results Worker; a ?submit= link or the Results-tab link overrides it
 function submitURL(){
   try{
     const q = new URLSearchParams(location.search).get("submit");
