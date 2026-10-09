@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.12.2 — 2026-10-09
+  Quizzes Machine 1.12.3 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -229,6 +229,7 @@ pt:{
  trEmpty:"Há campos em português vazios — preencha-os antes de descarregar.",
  trSaved:"bank-pt.json descarregado — carregue-o na raiz do repositório quiz-machine.",
  projDone:"Respondeu a todas as perguntas.", answered:"Respondidas",
+ srvFail:"O Worker não conseguiu guardar o resultado — mostre esta mensagem ao docente",
  resLocked:"Exportar e apagar requerem o código do docente.",
  clsH:"Resultados da turma", clsGo:"Resultados da turma (CSV)", clsBusy:"A carregar…",
  clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results), num único CSV com a coluna da turma (código).",
@@ -291,6 +292,7 @@ en:{
  trEmpty:"Some Portuguese fields are empty — fill them in before downloading.",
  trSaved:"bank-pt.json downloaded — upload it to the root of the quiz-machine repository.",
  projDone:"You have answered all the questions.", answered:"Answered",
+ srvFail:"The Worker could not save the result — show this message to your teacher",
  resLocked:"Exporting and clearing need the teacher code.",
  clsH:"Class results", clsGo:"Class results (CSV)", clsBusy:"Loading…",
  clsP:"Every attempt your students sent to the Worker (private quiz-results repository), in one CSV with a class (code) column.",
@@ -306,6 +308,11 @@ const $ = s => document.querySelector(s);
 const t = k => STR[LANG][k];
 const LETTERS = ["A","B","C","D"];
 const BAKED_SUBMIT = "https://quiz-results.ncorticos.workers.dev"; // results Worker; a ?submit= link or the Results-tab link overrides it
+// POST to the Worker as text/plain: a "simple" cross-site request, so the browser sends no CORS preflight
+// (the Worker still parses the body as JSON). Older deployed Workers crashed on the preflight.
+function toWorker(url, obj){
+  return fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=UTF-8"},body:JSON.stringify(obj)});
+}
 function submitURL(){
   try{
     const q = new URLSearchParams(location.search).get("submit");
@@ -558,7 +565,7 @@ function finishQuiz(auto){
   saveResult();
   const EP=submitURL();
   if(EP && DEF.code){
-    fetch(EP,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPayload(DEF.code))})
+    toWorker(EP, resultPayload(DEF.code))
       .then(r=>{ if(!r.ok) throw new Error("http "+r.status);
         try{localStorage.setItem("qa_sent_"+Q.id,"1");}catch(e){}
         if($("#r-send")) sentState(); })
@@ -625,9 +632,12 @@ async function sendResult(A,pre,onSent){ // pre: id prefix of the send controls 
   if(!code){ msg.textContent=t("needCode"); return; }
   btn.disabled=true; btn.textContent=t("sending"); msg.textContent="";
   try{
-    const r=await fetch(submitURL(),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPayload(code,A))});
+    const r=await toWorker(submitURL(), resultPayload(code,A));
     if(r.status===403){ msg.textContent=t("badCode"); btn.disabled=false; btn.textContent=t("send"); return; }
-    if(!r.ok) throw new Error("http "+r.status);
+    if(!r.ok){ // the Worker answered but could not save: show its reason (e.g. "502 github" = token/REPO)
+      const j=await r.json().catch(()=>({}));
+      msg.textContent=`${t("srvFail")} (${r.status}${j.error?" "+j.error:""})`; btn.disabled=false; btn.textContent=t("send"); return;
+    }
     try{localStorage.setItem("qa_sent_"+A.id,"1");}catch(e){}
     onSent();
   }catch(e){ msg.textContent=t("netFail"); btn.disabled=false; btn.textContent=t("send"); }
@@ -672,7 +682,7 @@ function finishSession(timedOut){
   saveResult(S);
   const EP=submitURL(), A=S;
   if(EP && DEF.code){
-    fetch(EP,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(resultPayload(DEF.code,A))})
+    toWorker(EP, resultPayload(DEF.code,A))
       .then(r=>{ if(!r.ok) throw new Error("http "+r.status);
         A.sent=true; try{localStorage.setItem("qa_sent_"+A.id,"1");}catch(e){}
         if(TAB==="proj" && S===A) renderProj(); })
@@ -956,8 +966,7 @@ async function runTranslate(bk){
     let res=null, err=t("trFail");
     for(let tries=0; tries<2 && !res; tries++){
       try{
-        const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({action:"translate", code:TRCODE, items:batch.map(s=>({q:s.q,opts:s.opts}))})});
+        const r=await toWorker(url,{action:"translate", code:TRCODE, items:batch.map(s=>({q:s.q,opts:s.opts}))});
         const j=await r.json().catch(()=>({}));
         if(r.status===403){ err=t("trBadCode"); break; }
         if(r.ok && j.ok && Array.isArray(j.items) && j.items.length===batch.length){ res=j.items; TRMODEL=j.model||TRMODEL; }
@@ -1089,7 +1098,7 @@ async function classCSV(){ // every attempt sent to the Worker (private quiz-res
   if(!TRCODE){ msg.textContent=t("trNeedCode"); $("#e-tcode").focus(); return; }
   btn.disabled=true; msg.textContent=t("clsBusy");
   try{
-    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"results",code:TRCODE})});
+    const r=await toWorker(url,{action:"results",code:TRCODE});
     const j=await r.json().catch(()=>({}));
     if(r.status===403) msg.textContent=t("trBadCode");
     else if(j.error==="setup") msg.textContent=t("clsSetup");
