@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.17.4 — 2026-10-09 20:10 (Lisbon)
+  Quizzes Machine 1.17.5 — 2026-10-09 20:13 (Lisbon)
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -194,7 +194,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
   <section class="page" id="pg-lab"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.17.4 · 2026-10-09 20:10</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.17.5 · 2026-10-09 20:13</span></footer>
 </main>
 <script>
 "use strict";
@@ -579,7 +579,7 @@ function renderQuiz(){
 }
 /* ---------- LAB submissions (students): 5 per lab group, a PDF ≤ 10 MB or a link ---------- */
 const LAB_N = 5, LAB_MAX = 10*1024*1024;
-const LAB_PROF = "Maja Sutkowska"; // shown on the Submissions page
+const LAB_PROF = {architects:"Maja Sutkowska", engineers:"Nuno Dinis Cortiços"}; // lab professor per track
 let LABST = null; // {grp, open:[k], subs:{k:{date,kind,file,size,link}}} of the chosen group
 const labParse = v => { const m=/^(Architects|Engineers) · Group ([A-Z])\b/.exec(v||""); return m ? {track:m[1].toLowerCase(), g:m[2]} : null; };
 const fmtMB = b => (b>=1048576 ? (b/1048576).toFixed(1)+" MB" : Math.max(1,Math.round((b||0)/1024))+" kB");
@@ -592,7 +592,7 @@ function renderLab(){
   let grp=""; try{ grp=localStorage.getItem("qm_lab")||""; }catch(e){}
   $("#pg-lab").innerHTML=`<div class="pagehead"><h2>${esc(t("labH"))}</h2><p>${esc(t("labP"))}</p></div>
     <div class="controls">
-      <span class="ctl"><label>${esc(t("labProf"))}</label><b id="l-prof">${esc(LAB_PROF)}</b></span>
+      <span class="ctl"><label>${esc(t("labProf"))}</label><b id="l-prof"></b></span>
       <span class="ctl"><label>${esc(t("labGroup"))}</label>${labGroupSelect("l-grp", grp)}</span>
       <span class="hint" id="l-msg"></span>
     </div>
@@ -603,8 +603,10 @@ function renderLab(){
   if(LABST && LABST.grp===grp) drawLabSlots(); // last known state at once, then a fresh one (the teacher may have opened one)
   loadLabStatus();
 }
-function drawMembers(){ // the chosen group's students, straight from LAB_GROUPS
+function drawMembers(){ // the chosen group's professor and students, straight from LAB_PROF / LAB_GROUPS
   const el=$("#l-members"), p=labParse($("#l-grp").value); if(!el) return;
+  $("#l-prof").textContent = p ? LAB_PROF[p.track]
+    : `${t("grpArch")}: ${LAB_PROF.architects} · ${t("grpEng")}: ${LAB_PROF.engineers}`; // no group yet: both
   const g=p && (LAB_GROUPS[p.track]||[]).find(x=>x[0]===p.g), names=(g && g[2]) || [];
   el.hidden=!names.length;
   el.innerHTML=names.length ? `<span class="k">${esc(t("labMembers"))}</span>${names.map(esc).join(" · ")}` : "";
@@ -1360,7 +1362,7 @@ function drawRoster(){ // lab groups with their members (LAB_GROUPS), next to th
   const out=$("#e-roster"); if(!out) return;
   if(!CLS){ out.innerHTML=""; return; }
   let total=0;
-  const col=tr=>`<div><h4>${esc(t(tr==="architects"?"grpArch":"grpEng"))}</h4>${LAB_GROUPS[tr].map(([L,h,names=[]])=>{ total+=names.length;
+  const col=tr=>`<div><h4>${esc(t(tr==="architects"?"grpArch":"grpEng"))} · ${esc(LAB_PROF[tr])}</h4>${LAB_GROUPS[tr].map(([L,h,names=[]])=>{ total+=names.length;
       return `<div><b>${esc(labName(L,h))}</b><ul>${names.map(n=>`<li>${esc(n)}</li>`).join("")}</ul></div>`; }).join("")}</div>`;
   const cols=col("architects")+col("engineers");
   out.innerHTML=`<details class="roster" style="margin:12px 0 0"${ROSTER_OPEN?" open":""}><summary>${esc(t("rosterH"))} · ${total} ${esc(t("rosterStud"))}</summary>
