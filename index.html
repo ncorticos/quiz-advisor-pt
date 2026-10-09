@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.13.0 — 2026-10-09
+  Quizzes Machine 1.14.0 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -174,7 +174,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.13.0</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.14.0</span></footer>
 </main>
 <script>
 "use strict";
@@ -185,7 +185,7 @@ pt:{
  brandsub:"Conforto Ambiental & Eficiência Energética",
  tabs:[["quiz","01","Questionário"],["proj","02","Projetor"],["bank","03","Banco"],["res","04","Resultados"]],
  quizH:"Questionário aleatório anti-cópia",
- quizP:"Escreva o nome, escolha o grupo e carregue em Prosseguir para abrir as perguntas projetadas.",
+ quizP:"Escolha a aula, escreva o nome, escolha o grupo e carregue em Prosseguir para abrir as perguntas.",
  bank:"Banco de perguntas", nq:"N.º perguntas", name:"Nome", klass:"Turma / Sessão",
  shufQ:"Baralhar perguntas", shufO:"Baralhar opções", oneBy:"Uma de cada vez", mins:"Minutos",
  start:"Prosseguir", qOf:"Pergunta", of:"de", finish:"Terminar", prev:"← Anterior", next:"Seguinte →",
@@ -251,7 +251,7 @@ en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
  tabs:[["quiz","01","Quiz"],["proj","02","Projector"],["bank","03","Bank"],["res","04","Results"]],
  quizH:"Randomized anti-copy quiz",
- quizP:"Type your name, choose your group, then press Proceed to open the projected questions.",
+ quizP:"Choose the lecture, type your name, choose your group, then press Proceed to open the questions.",
  bank:"Question bank", nq:"Questions", name:"Name", klass:"Group / Session",
  shufQ:"Shuffle questions", shufO:"Shuffle options", oneBy:"One at a time", mins:"Minutes",
  start:"Proceed", qOf:"Question", of:"of", finish:"Finish", prev:"← Previous", next:"Next →",
@@ -345,6 +345,7 @@ const DEF = (()=>{
   const n=parseInt(g.n||"20",10), m=parseInt(g.mins||"15",10);
   return {
     lesson: okL.includes(g.lesson)?g.lesson:"aula0",
+    lessonFixed: okL.includes(g.lesson), // a ?lesson= link fixes the lecture; a plain link lets students choose
     n: okN.includes(n)?n:20,
     mins: okM.includes(m)?m:15,
     group: ["architects","engineers"].includes(g.group)?g.group:"",
@@ -352,6 +353,7 @@ const DEF = (()=>{
     code: String(g.code||"").slice(0,40)
   };
 })();
+let LESSON_SEL = DEF.lesson; // lecture chosen on the start screen
 function lockInfo(){ try{return JSON.parse(localStorage.getItem(LOCKKEY)||'{"f":0,"u":0}');}catch(e){return{f:0,u:0};} }
 function lockSave(o){ try{localStorage.setItem(LOCKKEY,JSON.stringify(o));}catch(e){} }
 function lockRemaining(){ return Math.max(0, lockInfo().u - Date.now()); }
@@ -439,7 +441,8 @@ function renderQuiz(){
   const el = $("#pg-quiz");
   if(window._lockT){ clearInterval(window._lockT); window._lockT=null; }
   if(!Q || Q.done){ // setup view (+ result below if done)
-    const defLesson = (Q && Q.done) ? Q.lesson : DEF.lesson;
+    const defLesson = LESSON_SEL;
+    const lockL = DEF.lessonFixed || !!(S && !S.done); // fixed by the link, or an attempt is running
     const bankSize = currentBank(defLesson).length;
     const validN = [20,30,40,50].filter(v=>v<=bankSize);
     const wantN = (Q && Q.done) ? Q.n : DEF.n;
@@ -451,7 +454,7 @@ function renderQuiz(){
       <div class="controls">
         <span class="ctl"><label>${esc(t("calA"))}</label>
           <select id="c-year" disabled><option>2026/27</option></select></span>
-        <span class="meta" id="c-bankname">${esc(LESSON[LANG][defLesson])} (${currentBank(defLesson).length})</span>
+        <span class="ctl"><label>${esc(t("bank"))}</label><select id="c-lesson"${lockL?" disabled":""}>${lessonOptions(defLesson)}</select></span>
         <span class="ctl"><label>${esc(t("nq"))}</label>
           <select id="c-n">${[20,30,40,50].map(v=>`<option value="${v}"${v===selN?" selected":""}${v>bankSize?" disabled":""}>${v}</option>`).join("")}</select></span>
         <span class="ctl"><label>${esc(t("name"))}</label><input type="text" id="c-name" placeholder="—"></span>
@@ -482,9 +485,16 @@ function renderQuiz(){
       if(!nm || !kg){ $("#c-warn").textContent=t("needId"); return; }
       try{ localStorage.setItem("qm_name",nm); localStorage.setItem("qm_group",kg); }catch(e){}
       if(DEF.mode==="quiz"){ startQuiz(); return; }
-      if(!S) startSession(nm,kg); // an attempt in progress or finished is resumed, not restarted (restart = teacher code)
+      // an attempt in progress, or a finished one of the same lecture, is resumed (restart = teacher code)
+      if(!S || (S.done && S.lesson!==LESSON_SEL)) startSession(nm,kg);
       TAB="proj"; renderTabs(); renderPage();
       window.scrollTo(0,0);
+    };
+    $("#c-lesson").onchange=e=>{ // keep the question-count options valid for the chosen bank
+      LESSON_SEL=e.target.value;
+      const size=currentBank(LESSON_SEL).length, sel=$("#c-n");
+      [...sel.options].forEach(o=>{ o.disabled=+o.value>size; });
+      if(+sel.value>size) sel.value=String([20,30,40,50].filter(v=>v<=size).pop());
     };
     const gate=()=>{ $("#c-start").disabled = !($("#c-name").value.trim() && $("#c-klass").value); $("#c-warn").textContent=""; };
     $("#c-name").oninput=gate; $("#c-klass").oninput=gate; gate();
@@ -500,7 +510,7 @@ function startQuiz(){
     (!nm?$("#c-name"):$("#c-klass")).focus();
     return;
   }
-  const lesson = DEF.lesson;
+  const lesson = LESSON_SEL;
   const bank = currentBank(lesson);
   const n = Math.max(1, Math.min(bank.length, parseInt($("#c-n").value||"10",10)));
   const shQ = $("#c-sq").checked, shO = $("#c-so").checked;
@@ -686,7 +696,7 @@ function projReshuffle(full){
 let S = null; // {id,name,klass,lesson,n,items:[{src,correct}],ans:{},startT,done,timedOut,secs,score,sent}
 const ADVANCE_MS = 500; // pause on the chosen answer before the next question
 function startSession(nm,kg){
-  P.lesson=DEF.lesson; projReshuffle();
+  P.lesson=LESSON_SEL; projReshuffle();
   const bank=currentBank(P.lesson), sel=$("#c-n"); // "Questions" setting on the start screen (default ?n=, else 20)
   const n=Math.min((sel && parseInt(sel.value,10)) || DEF.n, bank.length);
   S={id:newAttemptId(), name:nm, klass:kg, lesson:P.lesson, n, ans:{},
