@@ -29,3 +29,23 @@ free Cloudflare Worker that checks the class code announced in the room, so
 the GitHub token never appears in the student-facing page. Teacher setup is in
 the header comment of `worker.js`; students open the class link with
 `?submit=<worker-url>` (or paste it once in 04 Resultados > Ligação de envio).
+
+## Language
+
+2026/27 runs in English only (US spelling): `ONLY_LANG = "en"` in `index.html`
+hides the PT/EN switch; set it to `""` to bring the switch back.
+
+## Portuguese bank with Gemma (teacher)
+
+The same Worker can translate the English bank into European Portuguese with
+Gemma 4 on Cloudflare Workers AI (`@cf/google/gemma-4-26b-a4b-it`). Setup is in
+steps 5–7 of the `worker.js` header: add a Workers AI binding named `AI` and a
+secret `TEACHER_CODE` (your own code, not 3016 and not a class code).
+
+1. 03 Bank > unlock > pick a lecture > enter the Worker teacher code > Translate.
+2. Review the Portuguese column next to the English one and correct it in place.
+3. Download `bank-pt.json` and upload it to the root of this repository.
+
+On start-up the page loads `bank-pt.json` as the PT bank for each lecture it
+contains. The answer key is copied from the English bank, and a lecture whose
+size or answer key no longer matches the English bank is ignored.
