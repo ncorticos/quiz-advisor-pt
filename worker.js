@@ -357,8 +357,8 @@ async function labSubmit(req, url, env) {
   if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
   const q = (k) => String(url.searchParams.get(k) || "").trim();
   const slot = labSlot(q("track"), q("g"), q("k"));
-  const name = q("name").replace(/\s+/g, " ").slice(0, 80);
-  if (!slot || !/\S+\s+\S+/.test(name)) return json({ ok: false, error: "shape" }, 400);
+  const name = q("name").replace(/\s+/g, " ").slice(0, 80); // optional: the page no longer asks for it
+  if (!slot) return json({ ok: false, error: "shape" }, 400);
   const isLink = q("kind") === "link";
   const link = q("link").slice(0, 500);
   if (isLink && !/^https:\/\/[^\s"<>]+$/i.test(link)) return json({ ok: false, error: "link" }, 400);
@@ -378,12 +378,12 @@ async function labSubmit(req, url, env) {
     let sha; // replacing needs the current blob sha: the folder listing has it whatever the file size
     const dir = await fetch(`${GH}/repos/${env.REPO}/contents/lab/files`, { headers: ghHeaders(env) });
     if (dir.ok) sha = ((await dir.json()).find((f) => f.path === path) || {}).sha;
-    const put = await putBase64Stream(env, path, `lab ${slot.key} — ${name}`, req, len, sha);
+    const put = await putBase64Stream(env, path, `lab ${slot.key}${name ? ` — ${name}` : ""}`, req, len, sha);
     if (put.error) return json({ ok: false, error: put.error }, 400);
     if (!put.res.ok) return json({ ok: false, error: "github", detail: String(put.res.status) }, 502);
     entry = { name, date, kind: "pdf", file, size: Math.floor(len * 3 / 4) };
   }
-  await labIndexUpdate(env, `lab ${slot.key} ${entry.kind} — ${name}`, (d) => { d.subs[slot.key] = entry; });
+  await labIndexUpdate(env, `lab ${slot.key} ${entry.kind}${name ? ` — ${name}` : ""}`, (d) => { d.subs[slot.key] = entry; });
   return json({ ok: true, key: slot.key, date, kind: entry.kind });
 }
 
