@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.11.0 — 2026-10-09
+  Quizzes Machine 1.12.0 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -228,7 +228,13 @@ pt:{
  trLoaded:"Carregado de bank-pt.json — pode corrigir e descarregar de novo.",
  trEmpty:"Há campos em português vazios — preencha-os antes de descarregar.",
  trSaved:"bank-pt.json descarregado — carregue-o na raiz do repositório quiz-machine.",
- projDone:"Respondeu a todas as perguntas.", answered:"Respondidas"
+ projDone:"Respondeu a todas as perguntas.", answered:"Respondidas",
+ resLocked:"Exportar e apagar requerem o código do docente.",
+ clsH:"Resultados da turma", clsGo:"Resultados da turma (CSV)", clsBusy:"A carregar…",
+ clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results), num único CSV com a coluna da turma (código).",
+ clsDone:"tentativas descarregadas.", clsNone:"Ainda não há tentativas guardadas no Worker.",
+ clsTrunc:"Apenas as primeiras 40 (o Worker não conseguiu ler a pasta inteira de uma vez).",
+ clsSetup:"O Worker não tem a configuração de resultados (GITHUB_TOKEN / REPO).", clsFail:"Erro do Worker — tente de novo."
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -284,7 +290,13 @@ en:{
  trLoaded:"Loaded from bank-pt.json — you can correct it and download again.",
  trEmpty:"Some Portuguese fields are empty — fill them in before downloading.",
  trSaved:"bank-pt.json downloaded — upload it to the root of the quiz-machine repository.",
- projDone:"You have answered all the questions.", answered:"Answered"
+ projDone:"You have answered all the questions.", answered:"Answered",
+ resLocked:"Exporting and clearing need the teacher code.",
+ clsH:"Class results", clsGo:"Class results (CSV)", clsBusy:"Loading…",
+ clsP:"Every attempt your students sent to the Worker (private quiz-results repository), in one CSV with a class (code) column.",
+ clsDone:"attempts downloaded.", clsNone:"No attempts stored in the Worker yet.",
+ clsTrunc:"First 40 only (the Worker could not read the whole folder at once).",
+ clsSetup:"The Worker has no results setup (GITHUB_TOKEN / REPO).", clsFail:"Worker error — try again."
 }};
 const LESSON = {
 pt:{aula0:"Aula 00 — Conhecimento e Investigação Científica",aula1:"Aula 01 — Evolução do Clima",aula2:"Aula 02 — Análise Climática",aula3:"Aula 03 — Arquitetura Bioclimática"},
@@ -999,10 +1011,14 @@ function resultRow(A){
     id:A.id, n:A.n, score:A.score, pct:+(A.score/A.n*100).toFixed(1), secs:A.secs,
     detail:A.items.map((it,i)=>`${it.src+1}:${A.ans[i]===undefined?"-":LETTERS[A.ans[i]]}${A.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
 }
-function csvEsc(v){ v=String(v); return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
-function downloadCSV(rows, fname){
-  const head=["date","name","group","bank","attempt","n","score","pct","secs","detail"];
-  const lines=[head.join(";")].concat(rows.map(r=>[r.date,r.name,r.klass,r.lesson,r.id,r.n,r.score,r.pct,r.secs,r.detail].map(csvEsc).join(";")));
+function csvEsc(v){
+  v=v==null?"":String(v);
+  if(/^[=+\-@\t\r]/.test(v)) v="'"+v; // student-typed names must not run as spreadsheet formulas
+  return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;
+}
+function downloadCSV(rows, fname, withClass){
+  const head=["date","name","group",...(withClass?["class"]:[]),"bank","attempt","n","score","pct","secs","detail"];
+  const lines=[head.join(";")].concat(rows.map(r=>[r.date,r.name,r.klass,...(withClass?[r.cls]:[]),r.lesson,r.id,r.n,r.score,r.pct,r.secs,r.detail].map(csvEsc).join(";")));
   const blob=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname;
   document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
@@ -1013,15 +1029,25 @@ function renderRes(){
   el.innerHTML=`
     <div class="pagehead"><h2>${esc(t("resH"))}</h2><p>${esc(t("resP"))}</p></div>
     <div class="controls">
-      <button class="btn solid" id="e-all"${all.length?"":" disabled"}>${esc(t("expAll"))}</button>
-      <button class="btn" id="e-clear"${all.length?"":" disabled"}>${esc(t("clear"))}</button>
+      <button class="btn solid" id="e-all"${all.length&&UNLOCKED?"":" disabled"}>${esc(t("expAll"))}</button>
+      <button class="btn" id="e-clear"${all.length&&UNLOCKED?"":" disabled"}>${esc(t("clear"))}</button>
       <span class="meta">${all.length}</span>
+      ${UNLOCKED
+        ? `<button class="btn" id="e-lock" title="${esc(t("lockB"))}">🔓</button>`
+        : `<span class="ctl"><label>🔒 ${esc(t("codeL"))}</label><input type="password" id="e-code" style="width:110px" autocomplete="off"><button class="btn" id="e-codeok">OK</button></span>
+           <span class="hint" id="e-lockmsg">${esc(t("resLocked"))}</span>`}
     </div>
     <div class="controls">
       <span class="ctl"><label>${esc(t("submitLink"))}</label><input type="text" id="e-url" style="width:230px" autocomplete="off" spellcheck="false"></span>
       <button class="btn" id="e-save">${esc(t("submitSet"))}</button>
       <span class="hint" id="e-msg">${esc(t("submitP"))}</span>
     </div>`+
+    (!UNLOCKED?"":`<div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("clsH"))}</h3><p>${esc(t("clsP"))}</p></div></div>
+      <div class="panel-body"><div class="controls" style="margin:0">
+        <span class="ctl"><label>${esc(t("trCode"))}</label><input type="password" id="e-tcode" style="width:130px" autocomplete="off"></span>
+        <button class="btn solid" id="e-cls">${esc(t("clsGo"))}</button>
+        <span class="hint" id="e-clsmsg"></span>
+      </div></div></div>`)+
     (all.length?`<div class="panel"><div class="tbl-scroll"><table class="data">
       <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("thName"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
       <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(r.date)}</td><td>${esc(r.name||"—")}${r.klass?" · "+esc(grpLabel(r.klass)):""}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
@@ -1029,10 +1055,54 @@ function renderRes(){
   $("#e-url").value=submitURL();
   if(!UNLOCKED){ $("#e-url").disabled=true; $("#e-save").disabled=true; }
   $("#e-save").onclick=()=>{ try{localStorage.setItem("qa_submit",$("#e-url").value.trim());}catch(e){} $("#e-msg").textContent=t("submitSaved"); };
+  if(!UNLOCKED){
+    const go=()=>{ const m=codeCheck($("#e-code").value); if(m){ $("#e-code").value=""; $("#e-lockmsg").textContent=m; } else renderRes(); };
+    $("#e-codeok").onclick=go;
+    $("#e-code").onkeydown=e=>{ if(e.key==="Enter") go(); };
+    return;
+  }
+  $("#e-lock").onclick=()=>{ UNLOCKED=false; renderRes(); };
+  $("#e-tcode").value=TRCODE;
+  $("#e-tcode").oninput=e=>{ TRCODE=e.target.value; };
+  $("#e-cls").onclick=classCSV;
   if(all.length){
     $("#e-all").onclick=()=>downloadCSV(loadRes(),"quiz-results.csv");
     $("#e-clear").onclick=()=>{localStorage.removeItem(LSKEY); renderRes();};
   }
+}
+function codeCheck(val){ // teacher code with the shared escalating lockout; "" = unlocked, otherwise the message to show
+  const now=Date.now(), info=lockInfo();
+  const wait=r=>`${t("lockedMsg")} ${Math.floor(r/60000)}:${String(Math.floor(r%60000/1000)).padStart(2,"0")} ${t("minShort")}`;
+  if(now<info.u) return wait(info.u-now);
+  if(val===SETTINGS_CODE){ lockSave({f:0,u:0}); UNLOCKED=true; return ""; }
+  info.f=(info.f||0)+1;
+  if(info.f===3) info.u=now+5*60*1000;
+  else if(info.f===4) info.u=now+10*60*1000;
+  else if(info.f>=5) info.u=now+60*60*1000;
+  lockSave(info);
+  const ru=info.u-Date.now();
+  return ru>0 ? wait(ru) : `${t("wrongCode")} (${Math.max(0,3-info.f)} ${t("triesLeft")})`;
+}
+async function classCSV(){ // every attempt sent to the Worker (private quiz-results repo), one CSV
+  const url=submitURL(), msg=$("#e-clsmsg"), btn=$("#e-cls");
+  if(!url){ msg.textContent=t("trNeedURL"); return; }
+  if(!TRCODE){ msg.textContent=t("trNeedCode"); $("#e-tcode").focus(); return; }
+  btn.disabled=true; msg.textContent=t("clsBusy");
+  try{
+    const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"results",code:TRCODE})});
+    const j=await r.json().catch(()=>({}));
+    if(r.status===403) msg.textContent=t("trBadCode");
+    else if(j.error==="setup") msg.textContent=t("clsSetup");
+    else if(!r.ok || !j.ok || !Array.isArray(j.records)) msg.textContent=t("clsFail");
+    else if(!j.records.length) msg.textContent=t("clsNone");
+    else{
+      const rows=j.records.map(x=>({date:String(x.date).slice(0,16).replace("T"," "), name:x.name, klass:x.group, cls:x.class,
+        lesson:x.bank, id:x.id, n:x.n, score:x.score, pct:x.pct, secs:x.secs, detail:x.detail}));
+      downloadCSV(rows, "quiz-class-results-"+new Date().toISOString().slice(0,10)+".csv", true);
+      msg.textContent=`${rows.length} ${t("clsDone")}`+(j.truncated?` ${t("clsTrunc")}`:"");
+    }
+  }catch(e){ msg.textContent=t("netFail"); }
+  btn.disabled=false;
 }
 
 /* ---------- language ---------- */

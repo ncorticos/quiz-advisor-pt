@@ -26,8 +26,13 @@
 //  7. In the quiz page: 03 Bank > unlock > "Portuguese translation (Gemma)".
 //     Review/correct the text, download bank-pt.json and upload it to the
 //     quiz-machine repo root (GitHub > Add file > Upload files).
+//
+// Class results as CSV (teacher only; needs steps 1–3 and the TEACHER_CODE of step 6):
+//  8. In the quiz page: 04 Results > unlock with 3016 > Worker teacher code >
+//     "Class results (CSV)" downloads every attempt stored in quiz-results.
 
 const GH = "https://api.github.com";
+const RES_FALLBACK_MAX = 40; // per-file reads when GraphQL is unavailable (Workers free plan: 50 subrequests)
 const MODEL = "@cf/google/gemma-4-26b-a4b-it";
 const TR_SYSTEM = `You translate multiple-choice questions for a university course in architecture (Environmental Comfort & Energy Efficiency, Lisbon School of Architecture, ULisboa) from English into European Portuguese (pt-PT, Acordo Ortográfico de 1990). Never use Brazilian Portuguese spelling, vocabulary or grammar (use "projeto", "equipa", "registo", "facto", "ecrã", "utilizador", enclitic pronouns, "está a aumentar" not "está aumentando").
 Use the technical vocabulary of Portuguese building regulations and practice (REH, RECS, SCE, LNEC, ADENE): envolvente, vão envidraçado, ponte térmica, coeficiente de transmissão térmica, fator solar, sombreamento, inércia térmica, ganhos solares, conforto térmico, ventilação natural, desempenho energético, certificado energético, zona climática.
@@ -103,6 +108,59 @@ async function translate(b, env) {
   return json({ ok: true, model: MODEL, items: tr.map((it) => ({ q: it.q.trim(), opts: it.opts.map((o) => o.trim()) })) });
 }
 
+const pickRecord = (o) => o && typeof o === "object" && typeof o.id === "string" ? {
+  id: o.id, date: String(o.date || ""), class: String(o.class || ""), name: String(o.name || ""),
+  group: String(o.group || ""), bank: String(o.bank || ""), n: o.n, score: o.score, pct: o.pct,
+  secs: o.secs || 0, detail: String(o.detail || ""),
+} : null;
+const parseRecord = (text) => { try { return pickRecord(JSON.parse(text)); } catch { return null; } };
+
+// Every attempt in quiz-results/results/: one GraphQL call for the whole folder, REST file by file as fallback.
+async function classResults(b, env) {
+  if (!env.TEACHER_CODE || b.code !== env.TEACHER_CODE) return json({ ok: false, error: "code" }, 403);
+  if (!env.GITHUB_TOKEN || !env.REPO || !String(env.REPO).includes("/")) return json({ ok: false, error: "setup" }, 500);
+  const [owner, name] = String(env.REPO).split("/");
+  const headers = {
+    Authorization: `Bearer ${env.GITHUB_TOKEN}`,
+    Accept: "application/vnd.github+json",
+    "Content-Type": "application/json",
+    "User-Agent": "quizzes-machine-worker",
+  };
+  let records = null, truncated = false;
+  try {
+    const r = await fetch(`${GH}/graphql`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        query: `query($o:String!,$n:String!){repository(owner:$o,name:$n){object(expression:"HEAD:results"){... on Tree{entries{name object{... on Blob{text}}}}}}}`,
+        variables: { o: owner, n: name },
+      }),
+    });
+    const j = await r.json();
+    if (r.ok && !j.errors && j.data && j.data.repository) {
+      const entries = (j.data.repository.object && j.data.repository.object.entries) || []; // no folder yet = no results
+      records = entries.filter((e) => e.name.endsWith(".json") && e.object && e.object.text).map((e) => parseRecord(e.object.text));
+    }
+  } catch { /* REST below */ }
+  if (!records) {
+    const list = await fetch(`${GH}/repos/${env.REPO}/contents/results`, { headers });
+    if (list.status === 404) records = [];
+    else if (!list.ok) return json({ ok: false, error: "github" }, 502);
+    else {
+      const files = (await list.json()).filter((f) => f.type === "file" && f.name.endsWith(".json"));
+      truncated = files.length > RES_FALLBACK_MAX;
+      records = await Promise.all(files.slice(0, RES_FALLBACK_MAX).map(async (f) => {
+        try {
+          const r = await fetch(`${GH}/repos/${env.REPO}/contents/${f.path}`, { headers: { ...headers, Accept: "application/vnd.github.raw+json" } });
+          return r.ok ? parseRecord(await r.text()) : null;
+        } catch { return null; }
+      }));
+    }
+  }
+  records = records.filter(Boolean).sort((a, b2) => a.date.localeCompare(b2.date));
+  return json({ ok: true, n: records.length, truncated, records });
+}
+
 export default {
   async fetch(req, env) {
     if (req.method === "OPTIONS") return json(null, 204);
@@ -115,6 +173,7 @@ export default {
       return json({ ok: false, error: "bad json" }, 400);
     }
     if (b && b.action === "translate") return translate(b, env);
+    if (b && b.action === "results") return classResults(b, env);
     const CODES = String(env.CLASS_CODE || "").split(",").map(s => s.trim()).filter(Boolean);
     if (!CODES.length || !CODES.includes(b.code)) {
       return json({ ok: false, error: "code" }, 403);
