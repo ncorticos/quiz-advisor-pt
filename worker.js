@@ -18,7 +18,8 @@
 //     text REPO (e.g. ncorticos/quiz-results).
 //  4. Put the worker URL in BAKED_SUBMIT in index.html (done for
 //     https://quiz-results.ncorticos.workers.dev); a ?submit=<worker-url> link
-//     overrides it. Students type the class code at the end, or use ?code=<code>.
+//     overrides it. The page sends the lecture as class code (Lecture00, Lecture01…),
+//     so CLASS_CODE should list those; a ?code=<code> link overrides it.
 //
 // Optional — Portuguese translation of the bank with Gemma (teacher only):
 //  5. Worker > Settings > Bindings > Add > Workers AI, variable name AI.

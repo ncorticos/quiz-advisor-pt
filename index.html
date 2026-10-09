@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.14.0 — 2026-10-09
+  Quizzes Machine 1.15.0 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -174,7 +174,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.14.0</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta">v1.15.0</span></footer>
 </main>
 <script>
 "use strict";
@@ -205,8 +205,7 @@ pt:{
  expAll:"Exportar tudo (CSV)", clear:"Apagar histórico", empty:"Sem tentativas ainda.",
  timeout:"Tempo esgotado — questionário terminado automaticamente.",
  code:"Código da turma", send:"Enviar resultado", sending:"A enviar…",
- sent:"Guardado ✓", needCode:"Introduza o código da turma dado pelo docente.",
- badCode:"Código incorreto — confirme com o docente.",
+ sent:"Guardado ✓",
  netFail:"Falha de rede — tente de novo.",
  submitLink:"Ligação de envio", submitSet:"Guardar", submitSaved:"Ligação guardada.",
  submitP:"Cole aqui a ligação de envio dada pelo docente (uma vez por dispositivo).",
@@ -237,6 +236,7 @@ pt:{
  trSaved:"bank-pt.json descarregado — carregue-o na raiz do repositório quiz-machine.",
  projDone:"Respondeu a todas as perguntas.", answered:"Respondidas",
  srvFail:"O Worker não conseguiu guardar o resultado — mostre esta mensagem ao docente",
+ sendAgain:"Enviar de novo", codeRejected:"O Worker de resultados não aceita o código da turma — docente: acrescente-o a CLASS_CODE no Cloudflare:",
  wkCrash:"O Worker responde, mas falhou ao guardar. Docente: cole de novo o worker.js mais recente no Cloudflare e veja os Logs do Worker.",
  wkDown:"Sem resposta do Worker de resultados (verifique a ligação à Internet). Docente: confirme que o worker.js do quiz está publicado em",
  resLocked:"Exportar e apagar requerem o código do docente.",
@@ -271,8 +271,7 @@ en:{
  expAll:"Export all (CSV)", clear:"Clear history", empty:"No attempts yet.",
  timeout:"Time is up — quiz finished automatically.",
  code:"Class code", send:"Send result", sending:"Sending…",
- sent:"Saved ✓", needCode:"Enter the class code given by your teacher.",
- badCode:"Wrong code — check with your teacher.",
+ sent:"Saved ✓",
  netFail:"Network error — try again.",
  submitLink:"Submit link", submitSet:"Save", submitSaved:"Link saved.",
  submitP:"Paste here the submit link given by your teacher (once per device).",
@@ -303,6 +302,7 @@ en:{
  trSaved:"bank-pt.json downloaded — upload it to the root of the quiz-machine repository.",
  projDone:"You have answered all the questions.", answered:"Answered",
  srvFail:"The Worker could not save the result — show this message to your teacher",
+ sendAgain:"Send again", codeRejected:"The results Worker does not accept the class code — teacher: add it to CLASS_CODE in Cloudflare:",
  wkCrash:"The Worker answers but failed while saving. Teacher: re-paste the latest worker.js in Cloudflare and check the Worker's Logs.",
  wkDown:"No answer from the results Worker (check the internet connection). Teacher: check that the quiz worker.js is deployed at",
  resLocked:"Exporting and clearing need the teacher code.",
@@ -586,14 +586,8 @@ function finishQuiz(auto){
   Q.done=true; Q.secs=Math.round((Date.now()-Q.startT)/1000);
   Q.score=Q.items.filter((it,i)=>Q.ans[i]===it.correct).length;
   saveResult();
-  const EP=submitURL();
-  if(EP && DEF.code){
-    toWorker(EP, resultPayload(DEF.code))
-      .then(r=>{ if(!r.ok) throw new Error("http "+r.status);
-        try{localStorage.setItem("qa_sent_"+Q.id,"1");}catch(e){}
-        if($("#r-send")) sentState(); })
-      .catch(()=>{});
-  }
+  const A=Q;
+  autoSend(A, ()=>{ if(Q===A) renderSendPanel(); });
   renderQuiz();
   if(auto) setTimeout(()=>alert(t("timeout")),50);
 }
@@ -614,11 +608,7 @@ function renderResult(el){
       <span class="hint" id="r-msg"></span>
     </div>
     <div class="panel" id="r-sendpanel"><div class="panel-body">
-      <div class="controls" style="margin:0">
-        <span class="ctl"><label>${esc(t("code"))}</label><input type="text" id="r-code" style="width:130px" autocomplete="off" spellcheck="false"></span>
-        <button class="btn solid" id="r-send">${esc(t("send"))}</button>
-        <span class="hint" id="r-sendmsg"></span>
-      </div>
+      <div class="controls" style="margin:0" id="r-sendstatus"></div>
     </div></div>
     <div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("review"))}</h3></div></div>
       <div class="panel-body">`+
@@ -635,13 +625,13 @@ function renderResult(el){
     navigator.clipboard.writeText(s).then(()=>{$("#r-msg").textContent=t("copied");});
   };
   if(!submitURL()){ $("#r-sendpanel").style.display="none"; }
-  else{
-    try{ if(localStorage.getItem("qa_sent_"+Q.id)) sentState(); }catch(e){}
-    if(DEF.code){ try{$("#r-code").value=DEF.code;}catch(e){} }
-    $("#r-send").onclick=()=>sendResult(Q,"r",sentState);
-  }
+  else renderSendPanel();
 }
-function sentState(){ $("#r-send").disabled=true; $("#r-send").textContent=t("sent"); $("#r-sendmsg").textContent=Q.id; }
+function renderSendPanel(){ // quiz mode: status of the automatic send
+  const box=$("#r-sendstatus"); if(!box || !Q) return;
+  box.innerHTML=sendStatusHTML(Q,"r-retry");
+  const rb=$("#r-retry"); if(rb) rb.onclick=()=>{ const A=Q; autoSend(A, ()=>{ if(Q===A) renderSendPanel(); }); };
+}
 function resultPayload(code,A){ // A: attempt (quiz Q or projector S)
   A=A||Q;
   return {code, id:A.id, name:A.name, klass:A.klass, lesson:LESSON[LANG][A.lesson],
@@ -649,21 +639,29 @@ function resultPayload(code,A){ // A: attempt (quiz Q or projector S)
     date:new Date().toISOString(),
     detail:A.items.map((it,i)=>`${it.src+1}:${A.ans[i]===undefined?"-":LETTERS[A.ans[i]]}${A.ans[i]===it.correct?"✓":"✗"}`).join(" ")};
 }
-async function sendResult(A,pre,onSent){ // pre: id prefix of the send controls ("r" quiz, "pe" projector)
-  A=A||Q; pre=pre||"r"; onSent=onSent||sentState;
-  const btn=$(`#${pre}-send`), msg=$(`#${pre}-sendmsg`), code=$(`#${pre}-code`).value.trim();
-  if(!code){ msg.textContent=t("needCode"); return; }
-  btn.disabled=true; btn.textContent=t("sending"); msg.textContent="";
+/* ---------- sending results: automatic, no code to type ---------- */
+// Class code sent with a result: a ?code= link wins, otherwise the lecture itself (aula2 -> "Lecture02"),
+// which is what the Worker's CLASS_CODE lists.
+function classCode(lesson){ return DEF.code || "Lecture"+String(lesson).replace(/\D/g,"").padStart(2,"0"); }
+async function postAttempt(A){ // "" when stored, otherwise the reason to show
+  const url=submitURL();
   try{
-    const r=await toWorker(submitURL(), resultPayload(code,A));
-    if(r.status===403){ msg.textContent=t("badCode"); btn.disabled=false; btn.textContent=t("send"); return; }
-    if(!r.ok){ // the Worker answered but could not save: show its reason (e.g. "502 github" = token/REPO)
-      const j=await r.json().catch(()=>({}));
-      msg.textContent=`${t("srvFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`; btn.disabled=false; btn.textContent=t("send"); return;
-    }
-    try{localStorage.setItem("qa_sent_"+A.id,"1");}catch(e){}
-    onSent();
-  }catch(e){ msg.textContent=t("sending"); msg.textContent=await workerDiag(submitURL()); btn.disabled=false; btn.textContent=t("send"); }
+    const r=await toWorker(url, resultPayload(classCode(A.lesson), A));
+    if(r.ok){ try{localStorage.setItem("qa_sent_"+A.id,"1");}catch(e){} return ""; }
+    if(r.status===403) return `${t("codeRejected")} ${classCode(A.lesson)}`;
+    const j=await r.json().catch(()=>({}));
+    return `${t("srvFail")} (${r.status}${j.error?" "+j.error:""}${j.detail?": "+j.detail:""})`;
+  }catch(e){ return await workerDiag(url); }
+}
+function autoSend(A, redraw){ // A.send: "sending" | "fail" (A.sendMsg = reason); A.sent once stored
+  if(!submitURL() || A.sent || A.send==="sending") return;
+  A.send="sending"; A.sendMsg=""; redraw();
+  postAttempt(A).then(m=>{ A.send=m?"fail":"done"; A.sendMsg=m; if(!m) A.sent=true; redraw(); });
+}
+function sendStatusHTML(A, retryId){
+  return A.sent ? `<span class="pill ok">${esc(t("sent"))}</span><span class="meta">${esc(A.id)}</span>`
+    : A.send==="fail" ? `<button class="btn solid" id="${retryId}">${esc(t("sendAgain"))}</button><span class="hint">${esc(A.sendMsg)}</span>`
+    : `<span class="hint">${esc(t("sending"))}</span>`;
 }
 // The POST got no readable answer: ask the Worker with a plain GET to tell "offline / wrong code deployed"
 // from "quiz Worker deployed but it crashed" (our worker.js answers GET with {"error":"POST only"} + CORS).
@@ -712,14 +710,8 @@ function finishSession(timedOut){
   S.secs=Math.round((Date.now()-S.startT)/1000);
   S.score=S.items.filter((it,i)=>S.ans[i]===it.correct).length;
   saveResult(S);
-  const EP=submitURL(), A=S;
-  if(EP && DEF.code){
-    toWorker(EP, resultPayload(DEF.code,A))
-      .then(r=>{ if(!r.ok) throw new Error("http "+r.status);
-        A.sent=true; try{localStorage.setItem("qa_sent_"+A.id,"1");}catch(e){}
-        if(TAB==="proj" && S===A) renderProj(); })
-      .catch(()=>{});
-  }
+  const A=S;
+  autoSend(A, ()=>{ if(TAB==="proj" && S===A) renderProj(); });
   if(TAB==="proj") renderProj();
 }
 function pBand(rem){ return rem>600?"g":rem>=300?"y":"r"; }
@@ -847,7 +839,7 @@ ${location.href.split("?")[0]}`;
   if(P.endsAt && !P.over){ if(window._ptT)clearInterval(window._ptT); window._ptT=setInterval(pTick,500); }
   if(ended){
     card.innerHTML=projEndHTML();
-    if($("#pe-send")) $("#pe-send").onclick=()=>sendResult(S,"pe",()=>{ S.sent=true; renderProj(); });
+    if($("#pe-retry")) $("#pe-retry").onclick=()=>{ const A=S; autoSend(A, ()=>{ if(TAB==="proj" && S===A) renderProj(); }); };
     return;
   }
   if(P.pos<0){ card.innerHTML=`<p class="hint">${esc(t("projP"))}</p>`; return; }
@@ -884,10 +876,7 @@ function projEndHTML(){ // score only: the correct answers stay behind the teach
       <div class="stat"><div class="k">${esc(t("answered"))}</div><div class="v">${answered}<small>/${S.n}</small></div><div class="s">${esc(LESSON[LANG][S.lesson])}</div></div>
       <div class="stat"><div class="k">${esc(t("time"))}</div><div class="v">${fmtTime(S.secs)}</div><div class="s">${esc(S.name)} · ${esc(grpLabel(S.klass))}</div></div>
       <div class="stat"><div class="k">${esc(t("attempt"))}</div><div class="v" style="font-size:16px">${esc(S.id)}</div><div class="s">${BANK_YEAR}</div></div>
-    </div>`+(!submitURL()?"":`<div class="controls" style="margin:14px 0 0">${S.sent
-      ? `<span class="pill ok">${esc(t("sent"))}</span><span class="meta">${esc(S.id)}</span>`
-      : `<span class="ctl"><label>${esc(t("code"))}</label><input type="text" id="pe-code" style="width:130px" autocomplete="off" spellcheck="false" value="${esc(DEF.code)}"></span>
-         <button class="btn solid" id="pe-send">${esc(t("send"))}</button><span class="hint" id="pe-sendmsg"></span>`}</div>`);
+    </div>`+(!submitURL()?"":`<div class="controls" style="margin:14px 0 0">${sendStatusHTML(S,"pe-retry")}</div>`);
 }
 
 /* ---------- bank tab ---------- */
