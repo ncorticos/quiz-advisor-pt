@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.9.6 — 2026-10-09
+  Quizzes Machine 1.10.0 — 2026-10-09
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -130,6 +130,14 @@ table.data tbody tr:hover{background:var(--wash)}
   .stat .v{font-size:19px}
 }
 .hint{font-size:12px;color:var(--muted)}
+table.trtab td{white-space:normal;vertical-align:top;width:48%}
+table.trtab td.num{width:auto}
+.trq{font-weight:600;margin-bottom:4px}
+.tro{display:flex;gap:8px;color:var(--ink2)}
+.tro .L{font-family:var(--mono);color:var(--muted)}
+.tro.ok{color:var(--good);font-weight:600}
+#b-trout [contenteditable]{border-radius:3px;outline:1px dashed transparent;outline-offset:1px}
+#b-trout [contenteditable]:hover,#b-trout [contenteditable]:focus{outline-color:var(--c1);background:#f1f5fe}
 .ptimer{font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-0.02em}
 .ptimer.g{color:#4d7c0f}.ptimer.y{color:#b45309}.ptimer.r{color:var(--bad)}
 .tbar{height:8px;background:var(--line2);border-radius:4px;overflow:hidden;margin:0 0 16px}
@@ -207,7 +215,19 @@ pt:{
  profUn:"Desbloqueio do professor", noProf:"Email do professor não configurado neste link — chame o docente.",
  needProf:"A revelação da resposta requer o código do professor.",
  bankLocked:"Banco bloqueado — introduza o código do professor para ver as perguntas e respostas.",
- foot:"Banco extraído das aulas L.00–L.03 · cada tentativa baralha perguntas e opções · ficheiro único, funciona offline e no GitHub Pages."
+ foot:"Banco extraído das aulas L.00–L.03 · cada tentativa baralha perguntas e opções · ficheiro único, funciona offline e no GitHub Pages.",
+ trH:"Tradução para português (Gemma)",
+ trP:"Traduz o banco inglês desta aula para português europeu através do seu Cloudflare Worker (Workers AI, Gemma 4). Reveja e corrija a coluna em português, descarregue bank-pt.json e carregue-o no repositório quiz-machine (Add file > Upload files).",
+ trCode:"Código do docente (Worker)", trGo:"Traduzir", trDl:"Descarregar bank-pt.json",
+ trBusy:"A traduzir…", trDone:"Concluído — reveja a coluna em português e descarregue.",
+ trFail:"Tradução interrompida — carregue em Traduzir para continuar.",
+ trNeedURL:"Defina primeiro a ligação do Worker (04 Resultados > Ligação de envio).",
+ trNeedCode:"Introduza o código do docente definido no Worker (TEACHER_CODE).",
+ trBadCode:"Código do docente (Worker) incorreto.",
+ trRedo:"Traduzir esta aula de novo? As suas correções serão substituídas.",
+ trLoaded:"Carregado de bank-pt.json — pode corrigir e descarregar de novo.",
+ trEmpty:"Há campos em português vazios — preencha-os antes de descarregar.",
+ trSaved:"bank-pt.json descarregado — carregue-o na raiz do repositório quiz-machine."
 },
 en:{
  brandsub:"Environmental Comfort & Energy Efficiency",
@@ -250,7 +270,19 @@ en:{
  profUn:"Teacher unlock", noProf:"Teacher email not set in this link — call your teacher.",
  needProf:"Revealing the answer requires the teacher code.",
  bankLocked:"Bank locked — enter the teacher code to see the questions and answers.",
- foot:"Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages."
+ foot:"Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.",
+ trH:"Portuguese translation (Gemma)",
+ trP:"Translates this lecture's English bank into European Portuguese through your Cloudflare Worker (Workers AI, Gemma 4). Review and correct the Portuguese column, download bank-pt.json and upload it to the quiz-machine repository (Add file > Upload files).",
+ trCode:"Worker teacher code", trGo:"Translate", trDl:"Download bank-pt.json",
+ trBusy:"Translating…", trDone:"Done — review the Portuguese column, then download.",
+ trFail:"Translation stopped — press Translate to resume.",
+ trNeedURL:"Set the Worker link first (04 Results > Submit link).",
+ trNeedCode:"Enter the teacher code set in the Worker (TEACHER_CODE).",
+ trBadCode:"Wrong Worker teacher code.",
+ trRedo:"Translate this lecture again? Your corrections will be replaced.",
+ trLoaded:"Loaded from bank-pt.json — you can correct it and download again.",
+ trEmpty:"Some Portuguese fields are empty — fill them in before downloading.",
+ trSaved:"bank-pt.json downloaded — upload it to the root of the quiz-machine repository."
 }};
 const LESSON = {
 pt:{aula0:"Aula 00 — Conhecimento e Investigação Científica",aula1:"Aula 01 — Evolução do Clima",aula2:"Aula 02 — Análise Climática",aula3:"Aula 03 — Arquitetura Bioclimática"},
@@ -772,6 +804,16 @@ function renderBank(filter){
       <span class="ctl"><label>${esc(t("search"))}</label><input type="text" id="b-f" value="${esc(filter||"")}" placeholder="${esc(t("search"))}"></span>
       <span class="meta">${rows.length}/${list.length}</span>
     </div>
+    <div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("trH"))}</h3><p>${esc(t("trP"))}</p></div></div>
+      <div class="panel-body">
+        <div class="controls" style="margin:0">
+          <span class="ctl"><label>${esc(t("trCode"))}</label><input type="password" id="b-tcode" style="width:130px" autocomplete="off"></span>
+          <button class="btn solid" id="b-tr">${esc(t("trGo"))} — ${esc(LESSON[LANG][bk])}</button>
+          <button class="btn" id="b-trdl">${esc(t("trDl"))}</button>
+          <span class="hint" id="b-trmsg"></span>
+        </div>
+        <div id="b-trout"></div>
+      </div></div>
     <div class="panel"><div class="tbl-scroll"><table class="data">
       <thead><tr><th class="num">${esc(t("thN"))}</th><th>${esc(t("thQ"))}</th><th>${esc(t("thC"))}</th></tr></thead>
       <tbody>${rows.map(({s,i})=>`<tr><td class="num">${i+1}</td><td style="white-space:normal">${esc(s.q)}</td><td class="num">${LETTERS[s.a]}</td></tr>`).join("")}</tbody>
@@ -779,6 +821,97 @@ function renderBank(filter){
   $("#b-lesson").onchange=()=>renderBank($("#b-f").value);
   $("#b-f").oninput=e=>{ const v=e.target.value, pos=e.target.selectionStart;
     renderBank(v); const n=$("#b-f"); n.focus(); n.setSelectionRange(pos,pos); };
+  $("#b-tcode").value=TRCODE;
+  $("#b-tcode").oninput=e=>{ TRCODE=e.target.value; };
+  $("#b-tr").onclick=()=>runTranslate(bk);
+  $("#b-trdl").onclick=trDownload;
+  $("#b-trout").onkeydown=e=>{ if(e.key==="Enter" && e.target.closest("[data-f]")){ e.preventDefault(); e.target.blur(); } };
+  $("#b-trout").oninput=e=>{ // teacher corrections in the Portuguese column
+    const n=e.target.closest("[data-f]"), job=TRS[bk]; if(!n||!job) return;
+    const it=job.items[+n.dataset.i], v=n.textContent.trim();
+    if(n.dataset.f==="q") it.q=v; else it.opts[+n.dataset.f]=v;
+  };
+  drawTR(bk);
+}
+
+/* ---------- Portuguese translation with Gemma (teacher, through the Worker) ---------- */
+// The Worker (worker.js, action "translate") holds the model; the page never sees a key.
+// Output: bank-pt.json in the repo root, loaded at start-up as the PT bank (answer key from EN).
+let TRS = {}, TRCODE = "", PTX = {}, TRMODEL = "";
+function ptItemOK(it,src){ return it && typeof it.q==="string" && it.q.trim() && Array.isArray(it.opts) && it.opts.length===4 &&
+  it.opts.every(o=>typeof o==="string" && o.trim()) && it.a===src.a; }
+function trSay(s){ const m=$("#b-trmsg"); if(m) m.textContent=s; }
+function trCell(s,i,ed){
+  const at=f=>ed?` contenteditable="true" spellcheck="true" data-i="${i}" data-f="${f}"`:"";
+  return `<div class="trq"${at("q")}>${esc(s.q)}</div>`+s.opts.map((o,k)=>
+    `<div class="tro${k===s.a?" ok":""}"><span class="L">${LETTERS[k]}</span><span${at(k)}>${esc(o)}</span></div>`).join("");
+}
+function drawTR(bk){
+  const out=$("#b-trout"); if(!out) return;
+  if(!TRS[bk] && PTX[bk]) TRS[bk]={lesson:bk, items:PTX[bk].map(it=>({q:it.q,opts:it.opts.slice(),a:it.a})), n:PTX[bk].length, done:true, loaded:true};
+  const job=TRS[bk], src=BANKS.en[bk];
+  $("#b-trdl").disabled=!Object.values(TRS).some(j=>j.done) && !Object.keys(PTX).length;
+  $("#b-tr").disabled=!!(job&&job.busy);
+  if(!job){ out.innerHTML=""; trSay(""); return; }
+  trSay(job.busy?`${t("trBusy")} ${job.items.length}/${job.n}`:job.err?job.err:job.loaded?t("trLoaded"):job.done?t("trDone"):"");
+  out.innerHTML=!job.items.length?"":`<div class="tbl-scroll" style="margin-top:12px"><table class="data trtab">
+    <thead><tr><th class="num">${esc(t("thN"))}</th><th>English</th><th>Português</th></tr></thead>
+    <tbody>${job.items.map((it,i)=>`<tr><td class="num">${i+1}</td><td>${trCell(src[i],i,false)}</td><td>${trCell(it,i,job.done)}</td></tr>`).join("")}</tbody>
+  </table></div>`;
+}
+async function runTranslate(bk){
+  const url=submitURL();
+  if(!url){ trSay(t("trNeedURL")); return; }
+  if(!TRCODE){ trSay(t("trNeedCode")); $("#b-tcode").focus(); return; }
+  const src=BANKS.en[bk];
+  let job=TRS[bk];
+  if(job && job.done && !confirm(t("trRedo"))) return;
+  if(!job || job.done) job=TRS[bk]={lesson:bk, items:[], n:src.length, done:false}; // otherwise resume where it stopped
+  job.busy=true; job.err="";
+  const redraw=()=>{ if(TAB==="bank" && $("#b-lesson") && $("#b-lesson").value===bk) drawTR(bk); };
+  redraw();
+  while(job.items.length<src.length){
+    const from=job.items.length, batch=src.slice(from, from+10);
+    let res=null, err=t("trFail");
+    for(let tries=0; tries<2 && !res; tries++){
+      try{
+        const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({action:"translate", code:TRCODE, items:batch.map(s=>({q:s.q,opts:s.opts}))})});
+        const j=await r.json().catch(()=>({}));
+        if(r.status===403){ err=t("trBadCode"); break; }
+        if(r.ok && j.ok && Array.isArray(j.items) && j.items.length===batch.length){ res=j.items; TRMODEL=j.model||TRMODEL; }
+        else if(j.error) err=`${t("trFail")} (${j.error})`;
+      }catch(e){ err=t("netFail"); }
+    }
+    if(!res){ job.busy=false; job.err=err; redraw(); return; }
+    res.forEach((it,k)=>job.items.push({q:it.q, opts:it.opts.slice(0,4), a:batch[k].a}));
+    redraw();
+  }
+  job.busy=false; job.done=true; redraw();
+}
+function trDownload(){
+  const banks={};
+  Object.keys(BANKS.en).forEach(k=>{
+    const job=TRS[k];
+    if(job && job.done) banks[k]=job.items.map(it=>({q:it.q, opts:it.opts.slice(), a:it.a}));
+    else if(PTX[k]) banks[k]=PTX[k];
+  });
+  if(Object.entries(banks).some(([k,L])=>!L.every((it,i)=>ptItemOK(it,BANKS.en[k][i])))){ trSay(t("trEmpty")); return; }
+  const body=JSON.stringify({format:"quiz-machine-bank-pt", version:1, model:TRMODEL||"@cf/google/gemma-4-26b-a4b-it",
+    updated:new Date().toISOString(), banks}, null, 1);
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([body],{type:"application/json"})); a.download="bank-pt.json";
+  document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
+  trSay(t("trSaved"));
+}
+function loadPT(){ // bank-pt.json next to index.html (GitHub Pages); silently absent offline or before first upload
+  fetch("bank-pt.json",{cache:"no-cache"}).then(r=>r.ok?r.json():null).then(j=>{
+    if(!j || !j.banks) return;
+    Object.keys(BANKS.en).forEach(k=>{
+      const L=j.banks[k], src=BANKS.en[k];
+      if(Array.isArray(L) && L.length===src.length && L.every((it,i)=>ptItemOK(it,src[i]))){ BANKS.pt[k]=L; PTX[k]=L; }
+    });
+    if(TAB==="bank") renderPage();
+  }).catch(()=>{});
 }
 
 /* ---------- results ---------- */
@@ -847,6 +980,7 @@ if(ONLY_LANG) $(".langsel").style.display="none";
 /* ---------- init ---------- */
 projReshuffle();
 setLang(ONLY_LANG||"en");
+loadPT();
 </script>
 </body>
 </html>
