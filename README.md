@@ -46,6 +46,14 @@ The page holds only the group letters and house types (`LAB_GROUPS` in
 quiz-results repo and appear under **Lab groups** in 04 Results only after the
 teacher code (3016) and the Worker's `TEACHER_CODE` (step 9 of `worker.js`).
 
+## Points (0–5)
+
+Every attempt also gets a grade on a 0–5 scale: correct answers ÷ questions × 5
+(14/20 → 3.5; two decimals at most). It is shown on the student's end screen,
+in 04 Results (this device, class list, averages by lecture and by group) and as
+the `points` column of both CSV files, written with a decimal comma like the
+`;`-separated CSV expects.
+
 ## Results storage (teacher)
 
 Attempts are sent to the private

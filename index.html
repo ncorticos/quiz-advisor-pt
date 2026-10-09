@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.16.0 — 2026-10-09 19:12 (Lisbon)
+  Quizzes Machine 1.16.1 — 2026-10-09 19:22 (Lisbon)
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -183,7 +183,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-proj"></section>
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.16.0 · 2026-10-09 19:12</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.16.1 · 2026-10-09 19:22</span></footer>
 </main>
 <script>
 "use strict";
@@ -252,7 +252,7 @@ pt:{
  wkDown:"Sem resposta do Worker de resultados (verifique a ligação à Internet). Docente: confirme que o worker.js do quiz está publicado em",
  resLocked:"Exportar e apagar requerem o código do docente.",
  clsH:"Resultados da turma", clsGo:"Descarregar CSV", clsBusy:"A carregar…",
- clsAll:"Todas", clsCount:"tentativas", clsCount1:"tentativa", thisDev:"Neste dispositivo", clsAvg:"média", qLeft:"Perguntas por responder", tLeft:"Tempo restante",
+ thPts:"Pontos (0–5)", ptsUnit:"pontos", clsAll:"Todas", clsCount:"tentativas", clsCount1:"tentativa", thisDev:"Neste dispositivo", clsAvg:"média", qLeft:"Perguntas por responder", tLeft:"Tempo restante",
  clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results). A lista mostra código da turma, grupo, código da tentativa e nota, sem nomes; os nomes só aparecem no CSV.",
  clsDone:"tentativas descarregadas.", clsNone:"Ainda não há tentativas guardadas no Worker.",
  clsTrunc:"Apenas as primeiras 40 (o Worker não conseguiu ler a pasta inteira de uma vez).",
@@ -321,7 +321,7 @@ en:{
  wkDown:"No answer from the results Worker (check the internet connection). Teacher: check that the quiz worker.js is deployed at",
  resLocked:"Exporting and clearing need the teacher code.",
  clsH:"Class results", clsGo:"Download CSV", clsBusy:"Loading…",
- clsAll:"All", clsCount:"attempts", clsCount1:"attempt", thisDev:"This device", clsAvg:"average", qLeft:"Questions left", tLeft:"Time left",
+ thPts:"Points (0–5)", ptsUnit:"points", clsAll:"All", clsCount:"attempts", clsCount1:"attempt", thisDev:"This device", clsAvg:"average", qLeft:"Questions left", tLeft:"Time left",
  clsP:"Every attempt your students sent to the Worker (private quiz-results repository). The list shows class code, group, attempt code and score, without names; names appear only in the CSV.",
  clsDone:"attempts downloaded.", clsNone:"No attempts stored in the Worker yet.",
  clsTrunc:"First 40 only (the Worker could not read the whole folder at once).",
@@ -444,6 +444,10 @@ function setKind(k){
   drawKind(); renderPage();
   const inp=$("#c-name"); if(inp && nm){ inp.value=nm; inp.dispatchEvent(new Event("input")); }
 }
+// Score as points on a 0–5 scale: correct / questions × 5 (14/20 → 3.5), two decimals at most
+const PTS_MAX = 5;
+const pts = (score, n) => (+n > 0 ? (+score || 0) / +n * PTS_MAX : 0);
+const fmtPts = v => (Math.round(v * 100) / 100).toFixed(2).replace(/\.?0+$/, "");
 function grpLabel(v){ return v==="architects"?t("grpArch"):v==="engineers"?t("grpEng"):v||""; }
 
 /* ---------- tabs ---------- */
@@ -642,7 +646,7 @@ function renderResult(el){
   const pass=pct>=50;
   el.innerHTML=`<div class="grid g4">
       <div class="stat"><div class="k">${esc(t("score"))}</div><div class="v">${Q.score}<small>/${Q.n} · ${pct.toFixed(0)}%</small></div>
-        <div class="s"><span class="pill ${pass?"ok":"bad"}">${pass?esc(t("pass")):esc(t("fail"))}</span></div></div>
+        <div class="s"><span class="pill ${pass?"ok":"bad"}">${pass?esc(t("pass")):esc(t("fail"))}</span> ${fmtPts(pts(Q.score,Q.n))}/${PTS_MAX} ${esc(t("ptsUnit"))}</div></div>
       <div class="stat"><div class="k">${esc(t("correct"))}</div><div class="v">${Q.score}</div><div class="s">${esc(t("of"))} ${Q.n} ${esc(t("total"))}</div></div>
       <div class="stat"><div class="k">${esc(t("time"))}</div><div class="v">${fmtTime(Q.secs)}</div><div class="s">${esc(Q.name||"—")}${Q.klass?" · "+esc(grpLabel(Q.klass)):""}</div></div>
       <div class="stat"><div class="k">${esc(t("attempt"))}</div><div class="v" style="font-size:16px">${esc(Q.id)}</div><div class="s">${esc(LESSON[LANG][Q.lesson])}</div></div>
@@ -920,7 +924,7 @@ function projEndHTML(){ // score only: the correct answers stay behind the teach
   return `<p class="qtext">${esc(S.timedOut?t("timeout"):t("projDone"))}</p>
     <div class="grid g4">
       <div class="stat"><div class="k">${esc(t("score"))}</div><div class="v">${S.score}<small>/${S.n} · ${pct.toFixed(0)}%</small></div>
-        <div class="s"><span class="pill ${pass?"ok":"bad"}">${esc(t(pass?"pass":"fail"))}</span></div></div>
+        <div class="s"><span class="pill ${pass?"ok":"bad"}">${esc(t(pass?"pass":"fail"))}</span> ${fmtPts(pts(S.score,S.n))}/${PTS_MAX} ${esc(t("ptsUnit"))}</div></div>
       <div class="stat"><div class="k">${esc(t("answered"))}</div><div class="v">${answered}<small>/${S.n}</small></div><div class="s">${esc(LESSON[LANG][S.lesson])}</div></div>
       <div class="stat"><div class="k">${esc(t("time"))}</div><div class="v">${fmtTime(S.secs)}</div><div class="s">${esc(S.name)} · ${esc(grpLabel(S.klass))}</div></div>
       <div class="stat"><div class="k">${esc(t("attempt"))}</div><div class="v" style="font-size:16px">${esc(S.id)}</div><div class="s">${BANK_YEAR}</div></div>
@@ -1114,8 +1118,8 @@ function fmtLocal(s){ // stored dates are UTC ("…T15:54:02.744Z" or local rows
   return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 function downloadCSV(rows, fname, withClass){
-  const head=["date","name","group",...(withClass?["class"]:[]),"bank","attempt","n","score","pct","secs","detail"];
-  const lines=[head.join(";")].concat(rows.map(r=>[fmtLocal(r.date),r.name,r.klass,...(withClass?[r.cls]:[]),r.lesson,r.id,r.n,r.score,r.pct,r.secs,r.detail].map(csvEsc).join(";")));
+  const head=["date","name","group",...(withClass?["class"]:[]),"bank","attempt","n","score","pct","points","secs","detail"];
+  const lines=[head.join(";")].concat(rows.map(r=>[fmtLocal(r.date),r.name,r.klass,...(withClass?[r.cls]:[]),r.lesson,r.id,r.n,r.score,r.pct,fmtPts(pts(r.score,r.n)).replace(".",","),r.secs,r.detail].map(csvEsc).join(";")));
   const blob=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv;charset=utf-8"});
   const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download=fname;
   document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);
@@ -1147,8 +1151,8 @@ function renderRes(){
         <span class="hint" id="e-clsmsg"></span>
       </div><div id="e-roster"></div><div id="e-clsout"></div></div></div>`)+
     (all.length?`<div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("thisDev"))}</h3></div></div><div class="tbl-scroll"><table class="data">
-      <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
-      <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(grpLabel(r.klass)||"—")}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
+      <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thPts"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
+      <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(grpLabel(r.klass)||"—")}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num"><b>${fmtPts(pts(r.score,r.n))}</b></td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
     </table></div></div>`:`<p class="hint">${esc(t("empty"))}</p>`);
   $("#e-url").value=submitURL();
   if(!UNLOCKED){ $("#e-url").disabled=true; $("#e-save").disabled=true; }
@@ -1265,23 +1269,24 @@ function drawClass(){
   const rows=CLS.records.filter(r=>!CLS.filter || r.class===CLS.filter).slice()
     .sort((a,b)=>String(b.date).localeCompare(String(a.date))); // newest first
   const avg=rows.length ? rows.reduce((s,r)=>s+(+r.pct||0),0)/rows.length : 0;
-  const by=key=>{ // [[label, attempts, average %]] sorted by label
-    const m=new Map(); rows.forEach(r=>{ const k=key(r); const v=m.get(k)||[0,0]; v[0]++; v[1]+=(+r.pct||0); m.set(k,v); });
-    return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([k,[n,sum]])=>[k,n,sum/n]);
+  const avgPts=rows.length ? rows.reduce((s,r)=>s+pts(r.score,r.n),0)/rows.length : 0;
+  const by=key=>{ // [[label, attempts, average %, average points]] sorted by label
+    const m=new Map(); rows.forEach(r=>{ const k=key(r); const v=m.get(k)||[0,0,0]; v[0]++; v[1]+=(+r.pct||0); v[2]+=pts(r.score,r.n); m.set(k,v); });
+    return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([k,[n,sum,sp]])=>[k,n,sum/n,sp/n]);
   };
   const sumTable=(title,list)=>`<div class="tbl-scroll"><table class="data">
-      <thead><tr><th>${esc(title)}</th><th class="num">${esc(t("thAttempts"))}</th><th class="num">${esc(t("thAvg"))}</th></tr></thead>
-      <tbody>${list.map(([k,n,a])=>`<tr><td>${esc(k)}</td><td class="num">${n}</td><td class="num"><b>${a.toFixed(0)}%</b></td></tr>`).join("")}</tbody></table></div>`;
+      <thead><tr><th>${esc(title)}</th><th class="num">${esc(t("thAttempts"))}</th><th class="num">${esc(t("thAvg"))}</th><th class="num">${esc(t("thPts"))}</th></tr></thead>
+      <tbody>${list.map(([k,n,a,ap])=>`<tr><td>${esc(k)}</td><td class="num">${n}</td><td class="num">${a.toFixed(0)}%</td><td class="num"><b>${fmtPts(ap)}</b></td></tr>`).join("")}</tbody></table></div>`;
   const lectures=by(r=>String(r.bank||"").split(" — ")[0]||"—"), groups=by(r=>grpLabel(r.group)||"—");
   out.innerHTML=`<div class="controls" style="margin:12px 0 10px">
       <span class="ctl"><label>${esc(t("code"))}</label><select id="e-clsf"><option value="">${esc(t("clsAll"))}</option>${
         classes.map(c=>`<option value="${esc(c)}"${c===CLS.filter?" selected":""}>${esc(c)}</option>`).join("")}</select></span>
-      <span class="meta">${rows.length} ${esc(t(rows.length===1?"clsCount1":"clsCount"))} · ${esc(t("clsAvg"))} ${avg.toFixed(0)}%</span>
+      <span class="meta">${rows.length} ${esc(t(rows.length===1?"clsCount1":"clsCount"))} · ${esc(t("clsAvg"))} ${avg.toFixed(0)}% · ${fmtPts(avgPts)}/${PTS_MAX} ${esc(t("ptsUnit"))}</span>
     </div>
     <div class="grid g2" style="margin:0 0 14px">${sumTable(t("avgLecture"),lectures)}${sumTable(t("avgGroup"),groups)}</div>
     <div class="tbl-scroll"><table class="data">
-      <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("code"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
-      <tbody>${rows.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(r.class||"—")}</td><td>${esc(grpLabel(r.group)||"—")}<br><span class="meta">${esc(r.bank)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${esc(r.score)}/${esc(r.n)} · ${esc(r.pct)}%</td><td class="num">${fmtTime(+r.secs||0)}</td></tr>`).join("")}</tbody>
+      <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("code"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thPts"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(r.class||"—")}</td><td>${esc(grpLabel(r.group)||"—")}<br><span class="meta">${esc(r.bank)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${esc(r.score)}/${esc(r.n)} · ${esc(r.pct)}%</td><td class="num"><b>${fmtPts(pts(r.score,r.n))}</b></td><td class="num">${fmtTime(+r.secs||0)}</td></tr>`).join("")}</tbody>
     </table></div>`;
   $("#e-clsf").onchange=e=>{ CLS.filter=e.target.value; drawClass(); };
 }
