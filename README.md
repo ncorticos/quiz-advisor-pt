@@ -35,8 +35,10 @@ Attempts are sent to the private
 per attempt — reading it requires your GitHub login) through `worker.js`, a
 free Cloudflare Worker that checks the class code announced in the room, so
 the GitHub token never appears in the student-facing page. Teacher setup is in
-the header comment of `worker.js`; students open the class link with
-`?submit=<worker-url>` (or paste it once in 04 Resultados > Ligação de envio).
+the header comment of `worker.js`. The Worker address
+(`https://quiz-results.ncorticos.workers.dev`) is built into the page
+(`BAKED_SUBMIT`), so students only type the class code at the end of the quiz,
+or the class link carries it: `?code=AULA0`.
 
 ## Language
 

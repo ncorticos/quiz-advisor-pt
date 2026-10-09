@@ -16,8 +16,9 @@
 //     text CLASS_CODE (one code per class, comma-separated, e.g.
 //     AULA0,TURMAC,TURMAD — announce each class its own code),
 //     text REPO (e.g. ncorticos/quiz-results).
-//  4. Share with students: https://ncorticos.github.io/quiz-machine/?submit=<worker-url>
-//     (or they paste <worker-url> once in 04 Resultados > Ligação de envio).
+//  4. Put the worker URL in BAKED_SUBMIT in index.html (done for
+//     https://quiz-results.ncorticos.workers.dev); a ?submit=<worker-url> link
+//     overrides it. Students type the class code at the end, or use ?code=<code>.
 //
 // Optional — Portuguese translation of the bank with Gemma (teacher only):
 //  5. Worker > Settings > Bindings > Add > Workers AI, variable name AI.
