@@ -44,10 +44,16 @@ a `?type=lab` or `?type=theory` link sets it too.
   https link (Drive / OneDrive). While a submission is open, a new one replaces
   the previous one (the git history of quiz-results keeps every version).
 
-Teacher, 04 Results > unlock (3016) > Worker teacher code:
+Teacher, LAB > Results > unlock (3016) > Worker teacher code (in LAB the Results
+tab shows only the lab part; quiz results, averages and points stay under
+Theoretical):
 
 - **Lab submissions** — one row per lab group, one column per submission:
-  open/close buttons (for every group at once), ✓ date, PDF download or link.
+  open/close buttons (for every group at once), ✓ date, PDF download or link,
+  and a field for the group's **points (0–5)** in each submission, saved when
+  you leave it (private, in `lab/index.json`; students do not see them). The
+  last column is the group's average; **Download points (CSV)** gives one row
+  per group with its members, the five points and the average.
 - **Lab groups** — every lab group with its members.
 
 Lab professor (`LAB_PROF` in `index.html`): Maja Sutkowska for the Architects
