@@ -12,6 +12,8 @@
 //     repositories" > quiz-results. Permissions > Contents: Read and write.
 //     Copy the token (ghp_/github_pat_...).
 //  2. Cloudflare: Workers & Pages > Create Worker > paste this file > Deploy.
+//     Or (recommended for updates) connect the Worker to the quiz-machine repo:
+//     Settings > Build > Connect; wrangler.toml there deploys this file on every merge.
 //  3. Worker > Settings > Variables: add secret GITHUB_TOKEN (the token),
 //     text CLASS_CODE (one code per class, comma-separated, e.g.
 //     AULA0,TURMAC,TURMAD — announce each class its own code),

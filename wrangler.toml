@@ -1,0 +1,16 @@
+# Cloudflare Worker "quiz-results" (worker.js), the results gatekeeper of the quiz page.
+# Used only when the Worker is connected to this repository
+# (Cloudflare > Workers & Pages > quiz-results > Settings > Build > Connect, branch main):
+# every merge to main then deploys worker.js, with no copy-paste in the dashboard editor.
+name = "quiz-results"
+main = "worker.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+# Keep the variables set in the dashboard (CLASS_CODE, REPO). Secrets (GITHUB_TOKEN,
+# TEACHER_CODE) are never removed by a deploy.
+keep_vars = true
+
+# Workers AI, for the Portuguese translation of the bank with Gemma (env.AI in worker.js).
+[ai]
+binding = "AI"
