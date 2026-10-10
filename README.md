@@ -82,6 +82,16 @@ in 04 Results (this device, class list, averages by lecture and by group) and as
 the `points` column of both CSV files, written with a decimal comma like the
 `;`-separated CSV expects.
 
+## Updating the Worker without copy-paste (teacher, one time)
+
+`wrangler.toml` describes the Cloudflare Worker `quiz-results` (`worker.js`, the AI
+binding, and `keep_vars` so the dashboard variables stay). Connect the Worker to
+this repository once: Cloudflare > Workers & Pages > quiz-results > Settings >
+Build > **Connect** > GitHub > `ncorticos/quiz-machine`, branch `main` (build
+command empty, deploy command `npx wrangler deploy`). From then on every merge to
+`main` deploys `worker.js`; the dashboard editor is no longer needed. Secrets
+(`GITHUB_TOKEN`, `TEACHER_CODE`) are never removed by a deploy.
+
 ## Results storage (teacher)
 
 Attempts are sent to the private
