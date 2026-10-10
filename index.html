@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <!--
-  Quizzes Machine 1.18.0 — 2026-10-09 20:27 (Lisbon)
+  Quizzes Machine 1.19.0 — 2026-10-10 09:30 (Lisbon)
   Conforto Ambiental & Eficiência Energética / Environmental Comfort & Energy Efficiency
   Banco: 576 perguntas extraídas das aulas PPTX L.00–L.03.
 
@@ -196,7 +196,7 @@ code.mono{font-family:var(--mono);font-size:11px;background:var(--wash);border:1
   <section class="page" id="pg-bank"></section>
   <section class="page" id="pg-res"></section>
   <section class="page" id="pg-lab"></section>
-  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.18.0 · 2026-10-09 20:27</span></footer>
+  <footer><span data-t="foot">Bank extracted from lectures L.00–L.03 · each attempt shuffles questions and options · single file, works offline and on GitHub Pages.</span> · <span class="meta" title="Version · release date and time (Lisbon)">v1.19.0 · 2026-10-10 09:30</span></footer>
 </main>
 <script>
 "use strict";
@@ -265,8 +265,8 @@ pt:{
  wkDown:"Sem resposta do Worker de resultados (verifique a ligação à Internet). Docente: confirme que o worker.js do quiz está publicado em",
  resLocked:"Exportar e apagar requerem o código do docente.",
  clsH:"Resultados da turma", clsGo:"Descarregar CSV", clsBusy:"A carregar…",
- labResH:"Resultados de laboratório", labResP:"Entregas e pontos dos grupos de laboratório (docente). Os resultados dos questionários estão em Teórica.", labPanH:"Entregas e pontos", labPanP:"Código do docente do Worker para abrir/fechar entregas, descarregar os trabalhos e dar pontos.", labPtsAvg:"Média (0–5)", labPtsCsv:"Descarregar pontos (CSV)", labPtsBad:"Os pontos têm de estar entre 0 e 5.", labPtsTip:"Pontos (0–5)",
- labProf:"Docente de laboratório", labMembers:"Elementos do grupo", tabLab:"Entregas", labH:"Entregas de laboratório", labP:"Escolha o grupo de laboratório: aparecem os elementos do grupo e as cinco entregas. Entregue cada entrega aberta: um PDF (até 10 MB) ou um link (Drive / OneDrive). Uma nova entrega substitui a anterior enquanto estiver aberta.", labSub:"Entrega", labOpen:"Aberta", labClosed:"Fechada", labDone:"Entregue", labOr:"ou link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Entregar", labResend:"Substituir", labSending:"A enviar…", labSent:"Entregue ✓", labLast:"Última:", labPick:"Escolha o grupo de laboratório para ver as entregas.", labNeedFile:"Escolha um PDF ou cole um link.", labTooBig:"O PDF tem mais de 10 MB: comprima-o ou entregue um link.", labNotPdf:"Só ficheiros PDF.", labBadLink:"O link tem de começar por https://", labClosedMsg:"Fechada: o docente abre-a na aula.", labIsClosed:"Esta entrega está fechada.", labReplace:"Entregar de novo substitui a anterior.", labOld:"As entregas ainda não estão disponíveis: o docente tem de atualizar o Worker.", labAdmH:"Entregas de laboratório", labAdmP:"Abra ou feche cada entrega para todos os grupos. Escreva os pontos (0–5) de cada grupo por baixo de cada entrega: ficam guardados ao sair do campo e os estudantes não os veem.", labOpenB:"Abrir", labCloseB:"Fechar", labOpenList:"abertas", labNone:"nenhuma", labGrp:"Grupo", labAdmOld:"Para gerir as entregas de laboratório, atualize o Worker: Cloudflare > quiz-results > Edit code > colar o worker.js atual > Deploy.",
+ labResH:"Resultados de laboratório", labResP:"Entregas e pontos dos grupos de laboratório (docente). Os resultados dos questionários estão em Teórica.", labPanH:"Entregas e pontos", labPanP:"Código do docente do Worker para abrir/fechar entregas, descarregar os trabalhos e dar pontos.", labPtsAvg:"Total (0–5)", labPtsH:"Pontos (0–5)", labPtsP:"Uma linha por grupo de laboratório. Escreva os pontos (0–5) de cada item: ficam guardados ao sair do campo e os estudantes não os veem. Total = média dos itens já avaliados.", labPtsCsv:"Descarregar pontos (CSV)", labPtsBad:"Os pontos têm de estar entre 0 e 5.",
+ labProf:"Docente de laboratório", labMembers:"Elementos do grupo", tabLab:"Entregas", labH:"Entregas de laboratório", labP:"Escolha o grupo de laboratório: aparecem os elementos do grupo e as cinco entregas. Entregue cada entrega aberta: um PDF (até 10 MB) ou um link (Drive / OneDrive). Uma nova entrega substitui a anterior enquanto estiver aberta.", labSub:"Entrega", labOpen:"Aberta", labClosed:"Fechada", labDone:"Entregue", labOr:"ou link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Entregar", labResend:"Substituir", labSending:"A enviar…", labSent:"Entregue ✓", labLast:"Última:", labPick:"Escolha o grupo de laboratório para ver as entregas.", labNeedFile:"Escolha um PDF ou cole um link.", labTooBig:"O PDF tem mais de 10 MB: comprima-o ou entregue um link.", labNotPdf:"Só ficheiros PDF.", labBadLink:"O link tem de começar por https://", labClosedMsg:"Fechada: o docente abre-a na aula.", labIsClosed:"Esta entrega está fechada.", labReplace:"Entregar de novo substitui a anterior.", labOld:"As entregas ainda não estão disponíveis: o docente tem de atualizar o Worker.", labAdmH:"Entregas de laboratório", labAdmP:"Abra ou feche cada entrega para todos os grupos; descarregue o PDF ou abra o link de cada grupo.", labOpenB:"Abrir", labCloseB:"Fechar", labOpenList:"abertas", labNone:"nenhuma", labGrp:"Grupo", labAdmOld:"Para gerir as entregas de laboratório, atualize o Worker: Cloudflare > quiz-results > Edit code > colar o worker.js atual > Deploy.",
  thPts:"Pontos (0–5)", ptsUnit:"pontos", clsAll:"Todas", clsCount:"tentativas", clsCount1:"tentativa", thisDev:"Neste dispositivo", clsAvg:"média", qLeft:"Perguntas por responder", tLeft:"Tempo restante",
  clsP:"Todas as tentativas que os alunos enviaram para o Worker (repositório privado quiz-results). A lista mostra código da turma, grupo, código da tentativa e nota, sem nomes; os nomes só aparecem no CSV.",
  clsDone:"tentativas descarregadas.", clsNone:"Ainda não há tentativas guardadas no Worker.",
@@ -336,8 +336,8 @@ en:{
  wkDown:"No answer from the results Worker (check the internet connection). Teacher: check that the quiz worker.js is deployed at",
  resLocked:"Exporting and clearing need the teacher code.",
  clsH:"Class results", clsGo:"Download CSV", clsBusy:"Loading…",
- labResH:"Lab results", labResP:"Submissions and points of the lab groups (teacher). The quiz results are under Theoretical.", labPanH:"Submissions and points", labPanP:"Worker teacher code to open/close submissions, download the work and give points.", labPtsAvg:"Average (0–5)", labPtsCsv:"Download points (CSV)", labPtsBad:"Points must be between 0 and 5.", labPtsTip:"Points (0–5)",
- labProf:"Lab professor", labMembers:"Group members", tabLab:"Submissions", labH:"Lab submissions", labP:"Choose your lab group: its members and its five submissions appear below. Hand in each open submission: a PDF (up to 10 MB) or a link (Drive / OneDrive). While a submission is open, a new one replaces the previous one.", labSub:"Submission", labOpen:"Open", labClosed:"Closed", labDone:"Submitted", labOr:"or link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Submit", labResend:"Replace", labSending:"Uploading…", labSent:"Submitted ✓", labLast:"Last:", labPick:"Choose your lab group to see its submissions.", labNeedFile:"Choose a PDF or paste a link.", labTooBig:"The PDF is larger than 10 MB: compress it or submit a link.", labNotPdf:"PDF files only.", labBadLink:"The link must start with https://", labClosedMsg:"Closed: your teacher opens it in class.", labIsClosed:"This submission is closed.", labReplace:"Submitting again replaces the previous one.", labOld:"Submissions are not available yet: the teacher must update the Worker.", labAdmH:"Lab submissions", labAdmP:"Open or close each submission for every group. Type each group's points (0–5) under each submission: they are saved when you leave the field, and students do not see them.", labOpenB:"Open", labCloseB:"Close", labOpenList:"open", labNone:"none", labGrp:"Group", labAdmOld:"To manage the lab submissions, update the Worker: Cloudflare > quiz-results > Edit code > paste the current worker.js > Deploy.",
+ labResH:"Lab results", labResP:"Submissions and points of the lab groups (teacher). The quiz results are under Theoretical.", labPanH:"Submissions and points", labPanP:"Worker teacher code to open/close submissions, download the work and give points.", labPtsAvg:"Total (0–5)", labPtsH:"Points (0–5)", labPtsP:"One row per lab group. Type each item's points (0–5): they are saved when you leave the field, and students do not see them. Total = average of the items graded so far.", labPtsCsv:"Download points (CSV)", labPtsBad:"Points must be between 0 and 5.",
+ labProf:"Lab professor", labMembers:"Group members", tabLab:"Submissions", labH:"Lab submissions", labP:"Choose your lab group: its members and its five submissions appear below. Hand in each open submission: a PDF (up to 10 MB) or a link (Drive / OneDrive). While a submission is open, a new one replaces the previous one.", labSub:"Submission", labOpen:"Open", labClosed:"Closed", labDone:"Submitted", labOr:"or link", labLinkPh:"https://… (Drive / OneDrive)", labLinkW:"link", labSend:"Submit", labResend:"Replace", labSending:"Uploading…", labSent:"Submitted ✓", labLast:"Last:", labPick:"Choose your lab group to see its submissions.", labNeedFile:"Choose a PDF or paste a link.", labTooBig:"The PDF is larger than 10 MB: compress it or submit a link.", labNotPdf:"PDF files only.", labBadLink:"The link must start with https://", labClosedMsg:"Closed: your teacher opens it in class.", labIsClosed:"This submission is closed.", labReplace:"Submitting again replaces the previous one.", labOld:"Submissions are not available yet: the teacher must update the Worker.", labAdmH:"Lab submissions", labAdmP:"Open or close each submission for every group; download each group's PDF or open its link.", labOpenB:"Open", labCloseB:"Close", labOpenList:"open", labNone:"none", labGrp:"Group", labAdmOld:"To manage the lab submissions, update the Worker: Cloudflare > quiz-results > Edit code > paste the current worker.js > Deploy.",
  thPts:"Points (0–5)", ptsUnit:"points", clsAll:"All", clsCount:"attempts", clsCount1:"attempt", thisDev:"This device", clsAvg:"average", qLeft:"Questions left", tLeft:"Time left",
  clsP:"Every attempt your students sent to the Worker (private quiz-results repository). The list shows class code, group, attempt code and score, without names; names appear only in the CSV.",
  clsDone:"attempts downloaded.", clsNone:"No attempts stored in the Worker yet.",
@@ -583,6 +583,9 @@ function renderQuiz(){
 }
 /* ---------- LAB submissions (students): 5 per lab group, a PDF ≤ 10 MB or a link ---------- */
 const LAB_N = 5, LAB_MAX = 10*1024*1024;
+// graded items per lab group: the 5 submissions (first five) + Presentation (points only, no upload)
+const LAB_ITEMS = ["Context","Archetype","Envelope","EPC","L&A","Presentation"];
+const labSubName = k => `${k} · ${LAB_ITEMS[k-1]}`;
 const LAB_PROF = {architects:"Maja Sutkowska", engineers:"Nuno Dinis Cortiços"}; // lab professor per track
 let LABST = null; // {grp, open:[k], subs:{k:{date,kind,file,size,link}}} of the chosen group
 const labParse = v => { const m=/^(Architects|Engineers) · Group ([A-Z])\b/.exec(v||""); return m ? {track:m[1].toLowerCase(), g:m[2]} : null; };
@@ -635,7 +638,7 @@ function drawLabSlots(){
     const last = !x ? "" : `${esc(t("labLast"))} ${esc(fmtLocal(x.date))} · ${x.kind==="pdf" ? `${esc(x.file||"PDF")} (${fmtMB(x.size)})`
       : safeLink(x.link) ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(t("labLinkW"))}</a>` : esc(t("labLinkW"))}`;
     const pill = x ? `<span class="pill ok">${esc(t("labDone"))}</span>` : `<span class="pill ${open?"idle":"bad"}">${esc(t(open?"labOpen":"labClosed"))}</span>`;
-    return `<div class="panel labslot"><div class="panel-head"><div class="panel-title"><h3>${esc(t("labSub"))} ${k}</h3>${last?`<p>${last}</p>`:""}</div>${pill}</div>
+    return `<div class="panel labslot"><div class="panel-head"><div class="panel-title"><h3>${esc(labSubName(k))}</h3>${last?`<p>${last}</p>`:""}</div>${pill}</div>
       <div class="panel-body">${open ? `<div class="controls" style="margin:0">
         <span class="ctl"><label>PDF ≤ 10 MB</label><input type="file" id="l-f${k}" accept="application/pdf,.pdf"></span>
         <span class="ctl"><label>${esc(t("labOr"))}</label><input type="url" id="l-l${k}" placeholder="${esc(t("labLinkPh"))}" style="width:230px"></span>
@@ -1268,7 +1271,7 @@ function renderRes(){
         ${LAB?"":`<button class="btn" id="e-cls">${esc(t("clsGo"))}</button>`}
         ${tcodeLoad()?`<button class="btn" id="e-tforget">${esc(t("tcForget"))}</button>`:""}
         <span class="hint" id="e-clsmsg"></span>
-      </div><div id="e-lab"></div><div id="e-roster"></div><div id="e-clsout"></div></div></div>`)+
+      </div><div id="e-labpts"></div><div id="e-lab"></div><div id="e-roster"></div><div id="e-clsout"></div></div></div>`)+
     (LAB?"":all.length?`<div class="panel"><div class="panel-head"><div class="panel-title"><h3>${esc(t("thisDev"))}</h3></div></div><div class="tbl-scroll"><table class="data">
       <thead><tr><th>${esc(t("thDate"))}</th><th>${esc(t("klass"))}</th><th>${esc(t("thAtt"))}</th><th class="num">${esc(t("thScore"))}</th><th class="num">${esc(t("thPts"))}</th><th class="num">${esc(t("thT"))}</th></tr></thead>
       <tbody>${all.map(r=>`<tr><td style="font-family:var(--mono)">${esc(fmtLocal(r.date))}</td><td>${esc(grpLabel(r.klass)||"—")}<br><span class="meta">${esc(r.lesson)}</span></td><td style="font-family:var(--mono)">${esc(r.id)}</td><td class="num">${r.score}/${r.n} · ${r.pct}%</td><td class="num"><b>${fmtPts(pts(r.score,r.n))}</b></td><td class="num">${fmtTime(r.secs)}</td></tr>`).join("")}</tbody>
@@ -1382,25 +1385,38 @@ function drawLabAdmin(){
   const L=CLS.lab, rows=[];
   ["architects","engineers"].forEach(tr=>LAB_GROUPS[tr].forEach(([g,h])=>rows.push({tr,g,h})));
   const ks=[...Array(LAB_N).keys()].map(i=>i+1), sub=(r,k)=>L.subs[`${r.tr}-${r.g}-s${k}`];
-  const P=L.pts||{}, pv=(r,k)=>P[`${r.tr}-${r.g}-s${k}`];
-  const ptsIn=(r,k)=>{ const v=pv(r,k); return `<input type="number" class="lpts" min="0" max="5" step="0.5" inputmode="decimal" data-pk="${r.tr}|${r.g}|${k}" value="${v===undefined?"":esc(String(v))}" title="${esc(t("labPtsTip"))}" aria-label="${esc(t("labPtsTip"))} ${esc(labName(r.g,r.h))} · ${esc(t("labSub"))} ${k}">`; };
   const isOpen=LAB_ADM_OPEN===null ? KIND==="lab" : LAB_ADM_OPEN;
-  out.innerHTML=`<details class="roster" style="margin:12px 0 0"${isOpen?" open":""}><summary>${esc(t("labAdmH"))} · ${esc(t("labOpenList"))}: ${L.open.length?L.open.join(", "):esc(t("labNone"))}</summary>
+  out.innerHTML=`<details class="roster" style="margin:12px 0 0"${isOpen?" open":""}><summary>${esc(t("labAdmH"))} · ${esc(t("labOpenList"))}: ${L.open.length?L.open.map(k=>LAB_ITEMS[k-1]).join(", "):esc(t("labNone"))}</summary>
     <p class="hint" style="margin:4px 0 8px">${esc(t("labAdmP"))}</p>
-    <div class="controls" style="margin:0 0 8px"><button class="btn" id="e-labcsv">${esc(t("labPtsCsv"))}</button></div>
     <div class="tbl-scroll"><table class="data labmx"><thead><tr><th>${esc(t("labGrp"))}</th>${ks.map(k=>{ const o=L.open.includes(k);
-      return `<th class="num">${esc(t("labSub"))} ${k}<br><button class="btn${o?" solid":""}" data-lk="${k}" data-lo="${o?0:1}">${esc(t(o?"labCloseB":"labOpenB"))}</button><br><span class="meta">${rows.filter(r=>sub(r,k)).length}/${rows.length}</span></th>`; }).join("")}<th class="num">${esc(t("labPtsAvg"))}</th></tr></thead>
-    <tbody>${rows.map(r=>`<tr data-row="${r.tr}|${r.g}"><td>${esc(t(r.tr==="architects"?"grpArch":"grpEng"))} · ${esc(labName(r.g,r.h))}</td>${ks.map(k=>{ const x=sub(r,k);
-      if(!x) return `<td class="num">—<br>${ptsIn(r,k)}</td>`;
+      return `<th class="num">${esc(labSubName(k))}<br><button class="btn${o?" solid":""}" data-lk="${k}" data-lo="${o?0:1}">${esc(t(o?"labCloseB":"labOpenB"))}</button><br><span class="meta">${rows.filter(r=>sub(r,k)).length}/${rows.length}</span></th>`; }).join("")}</tr></thead>
+    <tbody>${rows.map(r=>`<tr><td>${esc(t(r.tr==="architects"?"grpArch":"grpEng"))} · ${esc(labName(r.g,r.h))}</td>${ks.map(k=>{ const x=sub(r,k);
+      if(!x) return `<td class="num">—</td>`;
       const what = x.kind==="pdf" ? `<a href="#" data-dl="${r.tr}|${r.g}|${k}">PDF</a>` : safeLink(x.link) ? `<a href="${esc(x.link)}" target="_blank" rel="noopener">${esc(t("labLinkW"))}</a>` : "";
-      return `<td class="num"${x.name?` title="${esc(x.name)}"`:""}>✓ ${esc(fmtLocal(x.date))}<br>${what}<br>${ptsIn(r,k)}</td>`; }).join("")}<td class="num lavg"><b>${labAvgTxt(P,r.tr,r.g)}</b></td></tr>`).join("")}</tbody></table></div></details>`;
+      return `<td class="num"${x.name?` title="${esc(x.name)}"`:""}>✓ ${esc(fmtLocal(x.date))}<br>${what}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div></details>`;
   out.querySelector("details").ontoggle=e=>{ LAB_ADM_OPEN=e.target.open; };
   out.querySelectorAll("[data-lk]").forEach(b=>b.onclick=()=>labToggle(+b.dataset.lk, b.dataset.lo==="1", b));
   out.querySelectorAll("[data-dl]").forEach(a=>a.onclick=e=>{ e.preventDefault(); const [tr,g,k]=a.dataset.dl.split("|"); labDownload(tr,g,+k,a); });
+}
+// Points table (LAB results): column A the groups, one column per graded item, Total = average of the items graded so far
+let LAB_PTS_OPEN = true;
+function drawLabPoints(){
+  const out=$("#e-labpts"); if(!out) return;
+  if(!CLS || CLS.lab===undefined || KIND!=="lab"){ out.innerHTML=""; return; }
+  const P=CLS.lab.pts||{}, rows=[];
+  ["architects","engineers"].forEach(tr=>LAB_GROUPS[tr].forEach(([g,h])=>rows.push({tr,g,h})));
+  const cell=(r,k)=>{ const v=P[`${r.tr}-${r.g}-s${k}`];
+    return `<td class="num"><input type="number" class="lpts" min="0" max="5" step="0.5" inputmode="decimal" data-pk="${r.tr}|${r.g}|${k}" value="${v===undefined?"":esc(String(v))}" aria-label="${esc(labName(r.g,r.h))} · ${esc(LAB_ITEMS[k-1])} (0–5)"></td>`; };
+  out.innerHTML=`<details class="roster" style="margin:12px 0 0"${LAB_PTS_OPEN?" open":""}><summary>${esc(t("labPtsH"))}</summary>
+    <p class="hint" style="margin:4px 0 8px">${esc(t("labPtsP"))}</p>
+    <div class="controls" style="margin:0 0 8px"><button class="btn" id="e-labcsv">${esc(t("labPtsCsv"))}</button></div>
+    <div class="tbl-scroll"><table class="data labmx labpts"><thead><tr><th>${esc(t("labGrp"))}</th>${LAB_ITEMS.map(n=>`<th class="num">${esc(n)}</th>`).join("")}<th class="num">${esc(t("labPtsAvg"))}</th></tr></thead>
+    <tbody>${rows.map(r=>`<tr data-row="${r.tr}|${r.g}"><td>${esc(t(r.tr==="architects"?"grpArch":"grpEng"))} · ${esc(labName(r.g,r.h))}</td>${LAB_ITEMS.map((n,i)=>cell(r,i+1)).join("")}<td class="num lavg"><b>${labAvgTxt(P,r.tr,r.g)}</b></td></tr>`).join("")}</tbody></table></div></details>`;
+  out.querySelector("details").ontoggle=e=>{ LAB_PTS_OPEN=e.target.open; };
   out.querySelectorAll(".lpts").forEach(inp=>inp.onchange=()=>labSavePoints(inp));
   $("#e-labcsv").onclick=labPointsCSV;
 }
-const labAvg = (P,tr,g) => { const v=[...Array(LAB_N).keys()].map(i=>P[`${tr}-${g}-s${i+1}`]).filter(x=>typeof x==="number"); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; };
+const labAvg = (P,tr,g) => { const v=LAB_ITEMS.map((n,i)=>P[`${tr}-${g}-s${i+1}`]).filter(x=>typeof x==="number"); return v.length ? v.reduce((a,b)=>a+b,0)/v.length : null; };
 const labAvgTxt = (P,tr,g) => { const a=labAvg(P,tr,g); return a===null ? "—" : fmtPts(a); };
 async function labSavePoints(inp){ // one group's points for one submission; saved when the field is left
   const [tr,g,k]=inp.dataset.pk.split("|"), raw=inp.value.trim().replace(",","."), msg=$("#e-clsmsg");
@@ -1420,10 +1436,10 @@ async function labSavePoints(inp){ // one group's points for one submission; sav
 }
 function labPointsCSV(){ // one row per lab group: members, points per submission, average (decimal comma)
   const P=(CLS && CLS.lab && CLS.lab.pts)||{}, n=v=>v===undefined||v===null ? "" : fmtPts(v).replace(".",",");
-  const head=["track","group","house","members",...[...Array(LAB_N).keys()].map(i=>"s"+(i+1)),"average"];
+  const head=["track","group","house","members",...LAB_ITEMS,"total"];
   const lines=[head.join(";")];
   ["architects","engineers"].forEach(tr=>LAB_GROUPS[tr].forEach(([g,h,names=[]])=>lines.push(
-    [TRACK_EN[tr], `Group ${g}`, h, names.join(", "), ...[...Array(LAB_N).keys()].map(i=>n(P[`${tr}-${g}-s${i+1}`])), n(labAvg(P,tr,g))].map(csvEsc).join(";"))));
+    [TRACK_EN[tr], `Group ${g}`, h, names.join(", "), ...LAB_ITEMS.map((x,i)=>n(P[`${tr}-${g}-s${i+1}`])), n(labAvg(P,tr,g))].map(csvEsc).join(";"))));
   const blob=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv;charset=utf-8"}), a=document.createElement("a");
   a.href=URL.createObjectURL(blob); a.download="lab-points-"+new Date().toISOString().slice(0,10)+".csv";
   document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500);
@@ -1444,13 +1460,14 @@ async function labDownload(tr, g, k, a){
     const r=await toWorker(url,{action:"labfile", code:TRCODE, track:tr, g, k});
     if(r.ok){
       const blob=await r.blob(), x=document.createElement("a");
-      x.href=URL.createObjectURL(blob); x.download=`${TRACK_EN[tr]}-Group${g}-Submission${k}.pdf`;
+      x.href=URL.createObjectURL(blob); x.download=`${TRACK_EN[tr]}-Group${g}-${k}-${LAB_ITEMS[k-1].replace(/[^A-Za-z]+/g,"")}.pdf`;
       document.body.appendChild(x); x.click(); setTimeout(()=>{ URL.revokeObjectURL(x.href); x.remove(); },500);
     } else { const j=await r.json().catch(()=>({})); msg.textContent=`${t("clsFail")} (${r.status}${j.error?" "+j.error:""})`; }
   }catch(e){ msg.textContent=await workerDiag(url); }
   a.textContent="PDF";
 }
 function drawClass(){
+  drawLabPoints();
   drawLabAdmin();
   drawRoster(); // list on screen without student names (names only in the CSV): find a score by attempt code
   const out=$("#e-clsout"); if(!out) return;
