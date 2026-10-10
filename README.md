@@ -48,12 +48,15 @@ Teacher, LAB > Results > unlock (3016) > Worker teacher code (in LAB the Results
 tab shows only the lab part; quiz results, averages and points stay under
 Theoretical):
 
-- **Lab submissions** — one row per lab group, one column per submission:
-  open/close buttons (for every group at once), ✓ date, PDF download or link,
-  and a field for the group's **points (0–5)** in each submission, saved when
-  you leave it (private, in `lab/index.json`; students do not see them). The
-  last column is the group's average; **Download points (CSV)** gives one row
-  per group with its members, the five points and the average.
+- **Points (0–5)** — column A lists the lab groups; then one column per graded
+  item: **Context, Archetype, Envelope, EPC, L&A** (the five submissions) and
+  **Presentation** (points only, no upload), each 0–5, and **Total (0–5)**, the
+  average of the items graded so far. A value is saved when you leave its field
+  (private, in `lab/index.json`; students do not see points). **Download points
+  (CSV)** gives one row per group with its members, the six items and the total.
+- **Lab submissions** — one row per lab group, one column per submission
+  (1 · Context … 5 · L&A): open/close buttons (for every group at once),
+  ✓ date, PDF download or link.
 - **Lab groups** — every lab group with its members.
 
 Lab professor (`LAB_PROF` in `index.html`): Maja Sutkowska for the Architects

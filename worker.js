@@ -36,7 +36,7 @@
 //  9. LAB groups and their members (first name and surname) are in the page itself
 //     (LAB_GROUPS in index.html); nothing to set up here.
 // 10. LAB submissions (5 per lab group, PDF up to 10 MB or a link) and the teacher's
-//     0–5 points per group and submission: nothing to set up.
+//     0–5 points per group for the 5 submissions and the Presentation: nothing to set up.
 //     Files go to lab/files/, the list and the open/closed state to lab/index.json in
 //     quiz-results. Open or close each submission in 04 Results > Lab submissions.
 
@@ -293,7 +293,8 @@ async function handle(req, env) {
 const LAB_N = 5;
 const LAB_MAX = 10 * 1024 * 1024; // PDF bytes
 const LAB_MAX_B64 = Math.ceil(LAB_MAX / 3) * 4;
-const LAB_PTS_MAX = 5; // points per group and submission, 0–5
+const LAB_PTS_MAX = 5; // points per group and item, 0–5
+const LAB_PTS_N = 6; // graded items: the 5 submissions (Context, Archetype, Envelope, EPC, L&A) + Presentation
 const TRACKS = ["architects", "engineers"];
 const labSlot = (track, g, k) => {
   k = Number(k);
@@ -432,11 +433,14 @@ async function labOpen(b, env) {
   return json({ ok: true, lab });
 }
 
-// Teacher: points (0–5, two decimals at most) for one group and submission; null clears them.
+// Teacher: points (0–5, two decimals at most) for one group and item (1–5 submissions, 6 Presentation); null clears them.
 async function labPoints(b, env) {
   if (!labReady(env)) return json({ ok: false, error: "setup" }, 500);
-  const slot = labSlot(b.track, b.g, b.k);
-  if (!slot) return json({ ok: false, error: "shape" }, 400);
+  const k = Number(b.k);
+  if (!TRACKS.includes(b.track) || !/^[A-Z]$/.test(String(b.g)) || !Number.isInteger(k) || k < 1 || k > LAB_PTS_N) {
+    return json({ ok: false, error: "shape" }, 400);
+  }
+  const slot = { key: `${b.track}-${b.g}-s${k}` };
   let v = b.points === null || b.points === "" || b.points === undefined ? null : Number(b.points);
   if (v !== null && !(Number.isFinite(v) && v >= 0 && v <= LAB_PTS_MAX)) return json({ ok: false, error: "points" }, 400);
   if (v !== null) v = Math.round(v * 100) / 100;
